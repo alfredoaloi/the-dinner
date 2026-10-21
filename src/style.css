@@ -51,3 +51,53 @@ h1 {
   font-variant-numeric: tabular-nums;
   color: var(--accento);
 }
+
+.ingresso {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  text-align: left;
+}
+
+.ingresso label {
+  font-size: 0.9rem;
+  color: var(--accento);
+}
+
+.ingresso input {
+  width: 100%;
+  padding: 0.75rem 0.9rem;
+  font: inherit;
+  font-size: 1rem; /* almeno 16px: evita lo zoom automatico su iOS */
+  color: var(--testo);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(243, 239, 230, 0.4);
+  border-radius: 0.5rem;
+}
+
+.ingresso input:focus-visible,
+.ingresso button:focus-visible {
+  outline: 3px solid var(--accento);
+  outline-offset: 2px;
+}
+
+.ingresso button {
+  padding: 0.75rem 1rem;
+  font: inherit;
+  font-weight: 600;
+  color: var(--sfondo);
+  background: var(--accento);
+  border: 0;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.rifiuto {
+  margin: 0.25rem 0 0;
+  color: #ffb4a8;
+}
+
+.messaggio {
+  font-size: 1.15rem;
+}

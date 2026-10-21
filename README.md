@@ -28,6 +28,12 @@ Tutti i contenuti stanno in **un solo file**: [`src/config.js`](src/config.js). 
 
 I contenuti d'esempio sono **segnaposto** e sono marcati come tali: sostituiscili e poi metti `segnaposto: false`. I test controllano che le date siano coerenti (apertura, Menù, Curiosità).
 
+Due **Invitati** il cui nome è uguale una volta normalizzato (maiuscole, spazi e accenti non contano) sono un errore: l'Invito non parte e mostra un messaggio chiaro.
+
+## Provare le date: `?now=`
+
+Aggiungi `?now=<data ISO>` al link per simulare la data corrente, per esempio `?now=2026-11-28T20:00:00+01:00` per vedere l'apertura. Da quell'istante il tempo scorre a velocità reale. Un valore non valido viene ignorato e si usa l'ora reale.
+
 ## Sviluppo
 
 ```
