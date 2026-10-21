@@ -1,7 +1,8 @@
 // Strato di presentazione dell'Invito: sottile e senza test.
 // Legge URL e orologio, chiede la vista a computeView e la disegna.
-// Il nome scritto all'Ingresso vive solo in memoria (il salvataggio nel browser è un altro ticket).
+// Il nome dell'Invitato è ricordato nel browser (src/memoria.js) solo dopo un Ingresso riuscito.
 import { config } from './config.js';
+import { creaMemoria } from './memoria.js';
 import { computeView } from './view.js';
 
 /**
@@ -19,8 +20,10 @@ function creaOrologio(ricerca) {
 
 const adesso = creaOrologio(window.location.search);
 const radice = document.getElementById('invito');
+const memoria = creaMemoria(() => window.localStorage);
 
-let nomeScritto;
+let nomeScritto = memoria.leggi();
+let nomeDaMemoria = nomeScritto !== undefined; // il nome viene dal browser, non dall'Ingresso di questa visita
 let tentativo = 0;
 let chiaveDisegnata;
 let aggiornaCountdown = () => {};
@@ -74,10 +77,24 @@ function modulo(messaggioRifiuto) {
   form.addEventListener('submit', (evento) => {
     evento.preventDefault();
     nomeScritto = campo.value;
+    nomeDaMemoria = false;
     tentativo += 1;
     disegna(true);
   });
   return { form, campo };
+}
+
+/** Il link "non sei tu?": cancella il nome ricordato e riporta all'Ingresso. */
+function nonSeiTu() {
+  const bottone = crea('button', 'non sei tu?', 'non-sei-tu');
+  bottone.type = 'button';
+  bottone.addEventListener('click', () => {
+    memoria.dimentica();
+    nomeScritto = undefined;
+    nomeDaMemoria = false;
+    disegna(true);
+  });
+  return bottone;
 }
 
 function disegnaVista(vista) {
@@ -105,6 +122,7 @@ function disegnaVista(vista) {
       contenuto.push(
         crea('p', vista.messaggio, 'messaggio'),
         countdown((v) => (v.cena.siMangia ? v.cena.messaggio : formatoTempo(v.cena.manca))),
+        nonSeiTu(),
       );
       break;
   }
@@ -120,6 +138,16 @@ function disegnaVista(vista) {
  */
 function disegna(dopoTentativo = false) {
   const vista = computeView(config, adesso(), nomeScritto);
+  if (vista.kind === 'rifiutato' && nomeDaMemoria) {
+    // Il nome ricordato non è più in lista: lo si dimentica e si torna all'Ingresso.
+    memoria.dimentica();
+    nomeScritto = undefined;
+    nomeDaMemoria = false;
+    return disegna(dopoTentativo);
+  }
+  if (vista.kind === 'dentro' && dopoTentativo && !nomeDaMemoria) {
+    memoria.salva(nomeScritto); // solo dopo un Ingresso riuscito
+  }
   const chiave = `${vista.kind}:${vista.kind === 'dentro' ? vista.messaggio : tentativo}`;
   if (chiave !== chiaveDisegnata) {
     chiaveDisegnata = chiave;
