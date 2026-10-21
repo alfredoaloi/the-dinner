@@ -43,12 +43,14 @@ export function creaTempoMancante(etichetta) {
   function aggiorna(tempoOTesto) {
     if (typeof tempoOTesto === 'string') {
       if (!mostraTesto || tempoOTesto !== testoMostrato) elemento.textContent = tempoOTesto;
+      elemento.classList.add('countdown-testo');
       mostraTesto = true;
       testoMostrato = tempoOTesto;
       return;
     }
     if (mostraTesto) {
       elemento.replaceChildren(...celle.flatMap((c) => [c.cella, ' ']));
+      elemento.classList.remove('countdown-testo');
       mostraTesto = false;
     }
     for (const c of celle) {

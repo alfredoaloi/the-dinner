@@ -93,8 +93,9 @@ function modulo(messaggioRifiuto) {
 
   form.append(etichetta, campo, bottone);
   if (messaggioRifiuto) {
-    const rifiuto = crea('p', messaggioRifiuto, 'rifiuto');
+    const rifiuto = crea('div', undefined, 'rifiuto');
     rifiuto.setAttribute('role', 'alert');
+    rifiuto.append(crea('strong', 'Accesso negato'), crea('span', messaggioRifiuto));
     form.append(rifiuto);
   }
 
@@ -148,39 +149,67 @@ function sezioneCuriosita() {
   return sezione;
 }
 
+/** La riga di stato in alto: spia, etichetta "Area riservata" e un timbro che dice a che punto siamo. */
+function rigaDiStato(testoTimbro, riconosciuto = false) {
+  const spia = crea('span', undefined, 'spia');
+  spia.setAttribute('aria-hidden', 'true');
+  const etichetta = crea('p', undefined, 'etichetta');
+  etichetta.append(spia, 'Area riservata');
+  const timbro = crea('p', testoTimbro, riconosciuto ? 'timbro timbro-ok' : 'timbro');
+  const riga = crea('div', undefined, 'stato');
+  riga.append(etichetta, timbro);
+  return riga;
+}
+
+/** Nota discreta, visibile finché i contenuti in src/config.js sono ancora segnaposto. */
+function notaSegnaposto() {
+  return crea(
+    'p',
+    "Contenuti segnaposto: date, nomi e testi sono di prova e l'organizzatore deve ancora sostituirli.",
+    'nota-segnaposto',
+  );
+}
+
 function disegnaVista(vista) {
   const titolo = crea('h1', 'Un invito a cena');
-  const etichetta = crea('p', 'Area riservata', 'etichetta');
-  const contenuto = [etichetta, titolo];
+  const contenuto = [titolo];
+  let riga;
   let campoDaFocalizzare;
 
   switch (vista.kind) {
     case 'chiuso':
+      riga = rigaDiStato('Accesso chiuso');
       contenuto.push(
-        crea('p', "L'Invito non è ancora aperto. Torna tra:"),
+        crea('p', "L'Invito non è ancora aperto: gli addetti stanno ancora apparecchiando."),
+        crea('p', 'Torna tra:', 'didascalia'),
         countdown("Tempo che manca all'apertura dell'Invito", (v) => v.mancaAllApertura),
       );
       break;
     case 'ingresso':
     case 'rifiutato': {
-      contenuto.push(crea('p', 'Scrivi il tuo nome per entrare.'));
+      riga = rigaDiStato(vista.kind === 'rifiutato' ? 'Non in lista' : 'Solo amici');
+      contenuto.push(crea('p', 'Area a numero chiuso. Scrivi il tuo nome per entrare: niente password, ci fidiamo (quasi).'));
       const { form, campo } = modulo(vista.kind === 'rifiutato' ? vista.messaggio : undefined);
       contenuto.push(form);
       campoDaFocalizzare = campo;
       break;
     }
-    case 'dentro':
-      contenuto.push(
-        crea('p', vista.messaggio, 'messaggio'),
-        countdown('Tempo che manca alla cena', (v) => (v.cena.siMangia ? v.cena.messaggio : v.cena.manca)),
-        sezioneMenu(),
-        sezioneCuriosita(),
-        nonSeiTu(),
-      );
+    case 'dentro': {
+      riga = rigaDiStato('Accesso consentito', true);
+      const didascalia = crea('p', 'Alla cena mancano:', 'didascalia');
+      const conto = countdown('Tempo che manca alla cena', (v) => (v.cena.siMangia ? v.cena.messaggio : v.cena.manca));
+      const aggiornaTempoCena = aggiornaCountdown;
+      aggiornaCountdown = (v) => {
+        aggiornaTempoCena(v);
+        didascalia.hidden = v.cena.siMangia; // "Si mangia!" non ha bisogno di didascalia
+      };
+      contenuto.push(crea('p', vista.messaggio, 'messaggio'), didascalia, conto, sezioneMenu(), sezioneCuriosita(), nonSeiTu());
       break;
+    }
   }
+  if (config.segnaposto) contenuto.push(notaSegnaposto());
 
-  radice.replaceChildren(...contenuto);
+  radice.replaceChildren(riga, ...contenuto);
   return campoDaFocalizzare;
 }
 
