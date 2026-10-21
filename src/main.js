@@ -4,6 +4,7 @@
 import { config } from './config.js';
 import { creaMemoria } from './memoria.js';
 import { computeView } from './view.js';
+import { creaTempoMancante } from './tempo.js';
 
 /**
  * Orologio dell'Invito. Con `?now=<data ISO>` valida, l'istante indicato è il
@@ -35,19 +36,12 @@ function crea(tag, testo, classe) {
   return el;
 }
 
-function formatoTempo({ giorni, ore, minuti, secondi }) {
-  return `${giorni}g ${ore}h ${minuti}m ${secondi}s`;
-}
-
-/** Un countdown che si aggiorna sul posto; `leggi(vista)` restituisce il testo da mostrare. */
-function countdown(leggi) {
-  const el = crea('p', '', 'countdown');
-  el.id = 'countdown';
-  el.setAttribute('role', 'timer');
-  aggiornaCountdown = (vista) => {
-    el.textContent = leggi(vista);
-  };
-  return el;
+/** Un countdown che si aggiorna sul posto; `leggi(vista)` restituisce il Tempo (o il testo finale) da mostrare. */
+function countdown(etichetta, leggi) {
+  const { elemento, aggiorna } = creaTempoMancante(etichetta);
+  elemento.id = 'countdown';
+  aggiornaCountdown = (vista) => aggiorna(leggi(vista));
+  return elemento;
 }
 
 /** L'Ingresso: campo del nome con etichetta, più l'eventuale messaggio di rifiuto. */
@@ -107,7 +101,7 @@ function disegnaVista(vista) {
     case 'chiuso':
       contenuto.push(
         crea('p', "L'Invito non è ancora aperto. Torna tra:"),
-        countdown((v) => formatoTempo(v.mancaAllApertura)),
+        countdown("Tempo che manca all'apertura dell'Invito", (v) => v.mancaAllApertura),
       );
       break;
     case 'ingresso':
@@ -121,7 +115,7 @@ function disegnaVista(vista) {
     case 'dentro':
       contenuto.push(
         crea('p', vista.messaggio, 'messaggio'),
-        countdown((v) => (v.cena.siMangia ? v.cena.messaggio : formatoTempo(v.cena.manca))),
+        countdown('Tempo che manca alla cena', (v) => (v.cena.siMangia ? v.cena.messaggio : v.cena.manca)),
         nonSeiTu(),
       );
       break;

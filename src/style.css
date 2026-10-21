@@ -52,6 +52,21 @@ h1 {
   color: var(--accento);
 }
 
+.countdown .unita {
+  display: inline-block;
+  margin: 0 0.4rem;
+  white-space: nowrap;
+}
+
+.countdown .valore {
+  font-weight: 700;
+}
+
+.countdown .nome-unita {
+  font-size: 0.85rem;
+  color: var(--testo);
+}
+
 .ingresso {
   display: flex;
   flex-direction: column;

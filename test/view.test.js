@@ -116,3 +116,80 @@ test('due Invitati con lo stesso nome normalizzato fanno fallire la configurazio
     }
   }
 });
+
+test('il countdown alla cena scende di un secondo alla volta, riportando minuti, ore e giorni', () => {
+  const attesi = [
+    [CENA - 86400_000 - 1000, { giorni: 1, ore: 0, minuti: 0, secondi: 1 }],
+    [CENA - 86400_000, { giorni: 1, ore: 0, minuti: 0, secondi: 0 }],
+    [CENA - 86400_000 + 1000, { giorni: 0, ore: 23, minuti: 59, secondi: 59 }],
+    [CENA - 3600_000 - 1000, { giorni: 0, ore: 1, minuti: 0, secondi: 1 }],
+    [CENA - 60_000 - 1000, { giorni: 0, ore: 0, minuti: 1, secondi: 1 }],
+    [CENA - 60_000 + 1000, { giorni: 0, ore: 0, minuti: 0, secondi: 59 }],
+    [CENA - 1000, { giorni: 0, ore: 0, minuti: 0, secondi: 1 }],
+  ];
+  for (const [ora, manca] of attesi) {
+    const { cena } = computeView(config, ora, 'Mario Rossi');
+    assert.deepEqual(cena, { siMangia: false, manca }, new Date(ora).toISOString());
+  }
+});
+
+test('finché non è l\'ora della cena il countdown non mostra mai zero, nemmeno a frazioni di secondo', () => {
+  const { cena } = computeView(config, CENA - 1, 'Mario Rossi');
+  assert.deepEqual(cena, { siMangia: false, manca: { giorni: 0, ore: 0, minuti: 0, secondi: 1 } });
+  const meta = computeView(config, CENA - 500, 'Mario Rossi').cena;
+  assert.deepEqual(meta, { siMangia: false, manca: { giorni: 0, ore: 0, minuti: 0, secondi: 1 } });
+});
+
+test("l'istante è accettato anche come Date e dà la stessa vista", () => {
+  const ora = CENA - 90_000;
+  assert.deepEqual(computeView(config, new Date(ora), 'Mario Rossi'), computeView(config, ora, 'Mario Rossi'));
+});
+
+test('a cena iniziata e a cena passata c\'è solo "Si mangia!": nessun numero, nemmeno negativo', () => {
+  for (const scarto of [0, 1, 999, 1000, 60_000, 86400_000, 365 * 86400_000]) {
+    const view = computeView(config, CENA + scarto, 'Mario Rossi');
+    assert.deepEqual(view.cena, { siMangia: true, messaggio: 'Si mangia!' }, `+${scarto}ms`);
+  }
+});
+
+test('attorno alla cena nessun valore del tempo mancante è negativo o fuori scala', () => {
+  for (let ora = CENA - 3 * 86400_000; ora <= CENA + 3 * 86400_000; ora += 7919_000 + 137) {
+    const { cena } = computeView(config, ora, 'Mario Rossi');
+    if (cena.siMangia) {
+      assert.ok(ora >= CENA, `Si mangia! troppo presto a ${ora}`);
+      assert.deepEqual(Object.keys(cena).sort(), ['messaggio', 'siMangia']);
+      continue;
+    }
+    assert.ok(ora < CENA);
+    const { giorni, ore, minuti, secondi } = cena.manca;
+    for (const n of [giorni, ore, minuti, secondi]) assert.ok(Number.isInteger(n) && n >= 0, `${ora}`);
+    assert.ok(ore < 24 && minuti < 60 && secondi < 60, `${ora}`);
+  }
+});
+
+test('il countdown a cavallo del passaggio all\'ora solare (ottobre) conta il tempo reale di Europe/Rome', () => {
+  const cambio = {
+    ...config,
+    cena: '2030-10-27T20:00:00+01:00',
+    apertura: '2030-10-01T20:00:00+02:00',
+  };
+  // Il 27 ottobre 2030 alle 01:00 locale (+02:00) mancano 20 ore reali, non 19, alle 20:00 (+01:00).
+  const ora = Date.parse('2030-10-27T01:00:00+02:00');
+  assert.deepEqual(computeView(cambio, ora, 'Mario Rossi').cena.manca, { giorni: 0, ore: 20, minuti: 0, secondi: 0 });
+  // Alla mezzanotte locale del giorno prima (+02:00) mancano 45 ore reali: 1 giorno e 21 ore.
+  const sera = Date.parse('2030-10-26T00:00:00+02:00');
+  assert.deepEqual(computeView(cambio, sera, 'Mario Rossi').cena.manca, { giorni: 1, ore: 21, minuti: 0, secondi: 0 });
+});
+
+test('il countdown di una cena a cavallo del cambio ora legale passa da un\'ora locale all\'altra senza salti', () => {
+  const cambio = {
+    ...config,
+    cena: '2030-03-31T20:00:00+02:00',
+    apertura: '2030-03-01T20:00:00+01:00',
+  };
+  // Un secondo prima e un secondo dopo il salto delle 02:00 locali (01:00 UTC): il tempo reale scorre di un solo secondo.
+  const prima = computeView(cambio, Date.parse('2030-03-31T01:59:59+01:00'), 'Mario Rossi').cena.manca;
+  const dopo = computeView(cambio, Date.parse('2030-03-31T03:00:00+02:00'), 'Mario Rossi').cena.manca;
+  assert.deepEqual(prima, { giorni: 0, ore: 17, minuti: 0, secondi: 1 });
+  assert.deepEqual(dopo, { giorni: 0, ore: 17, minuti: 0, secondi: 0 });
+});
