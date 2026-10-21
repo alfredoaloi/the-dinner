@@ -1,0 +1,53 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --sfondo: #1b1a2e;
+  --testo: #f3efe6;
+  --accento: #f4b942;
+}
+
+html {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--sfondo);
+  color: var(--testo);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 1rem;
+  overflow-wrap: anywhere;
+}
+
+.invito {
+  width: 100%;
+  max-width: 32rem;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.etichetta {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accento);
+}
+
+h1 {
+  margin: 0 0 1rem;
+  font-size: 2rem;
+  line-height: 1.2;
+}
+
+.countdown {
+  margin-top: 1.5rem;
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--accento);
+}
