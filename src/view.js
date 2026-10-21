@@ -11,7 +11,9 @@
 //   { kind: 'ingresso' }
 //   { kind: 'rifiutato', messaggio }
 //   { kind: 'dentro', messaggio, cena: { siMangia: false, manca: Tempo }
-//                                    | { siMangia: true, messaggio } }
+//                                    | { siMangia: true, messaggio },
+//                     menu: { sbloccato: false, manca: Tempo }
+//                         | { sbloccato: true, contenuto } }
 // dove Tempo = { giorni, ore, minuti, secondi }, mai negativo.
 
 /**
@@ -50,6 +52,15 @@ function statoCena(config, adesso) {
   return { siMangia: false, manca: tempoMancante(cena - adesso) };
 }
 
+/** Stato del Menù: solo il tempo mancante allo sblocco, poi (dall'istante di sblocco in poi) il contenuto. */
+function statoMenu(config, adesso) {
+  const sblocco = Date.parse(config.menu.sblocco);
+  if (adesso >= sblocco) {
+    return { sbloccato: true, contenuto: config.menu.contenuto };
+  }
+  return { sbloccato: false, manca: tempoMancante(sblocco - adesso) };
+}
+
 /** Lancia un errore chiaro se due Invitati hanno lo stesso nome normalizzato. */
 function verificaConfigurazione(config) {
   const visti = new Map();
@@ -81,5 +92,10 @@ export function computeView(config, now, nomeScritto) {
   if (!invitato) {
     return { kind: 'rifiutato', messaggio: config.messaggioRifiuto };
   }
-  return { kind: 'dentro', messaggio: invitato.messaggio, cena: statoCena(config, adesso) };
+  return {
+    kind: 'dentro',
+    messaggio: invitato.messaggio,
+    cena: statoCena(config, adesso),
+    menu: statoMenu(config, adesso),
+  };
 }

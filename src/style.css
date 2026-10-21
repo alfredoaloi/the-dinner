@@ -117,6 +117,25 @@ h1 {
   font-size: 1.15rem;
 }
 
+.menu {
+  margin-top: 2rem;
+}
+
+.menu h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
+  color: var(--accento);
+}
+
+.menu p {
+  margin: 0;
+}
+
+.menu .countdown {
+  margin-top: 0.75rem;
+  font-size: 1.15rem;
+}
+
 .non-sei-tu {
   margin-top: 1.5rem;
   padding: 0.5rem;
