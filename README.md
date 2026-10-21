@@ -1,12 +1,12 @@
 # The Dinner
 
-L'**Invito** a una cena: un sito statico in italiano, senza backend e senza account, pubblicato gratis su GitHub Pages. Vocabolario del progetto in [GLOSSARY.md](GLOSSARY.md).
+L'**Invito** a una cena: una pagina statica in italiano, senza backend e senza account, pubblicato gratis su GitHub Pages. Vocabolario del progetto in [GLOSSARY.md](GLOSSARY.md).
 
 HTML, CSS e JavaScript puro (moduli ES): nessuna dipendenza, nessun build step, nessuna risorsa esterna.
 
 ## Pubblicazione: i due passi dell'organizzatore
 
-Il sito si pubblica da solo a ogni push su `master`, ma due cose può farle solo il proprietario del repository:
+L'Invito si pubblica da solo a ogni push su `master`, ma due cose può farle solo il proprietario del repository:
 
 1. **Rendere pubblico il repository.** Oggi è privato; su un account Free GitHub Pages richiede un repo pubblico. Su GitHub: *Settings* > *General* > *Danger Zone* > *Change visibility* > *Make public*. Da quel momento tutto ciò che sta nel repo è pubblico: non scriverci mai l'indirizzo di casa.
 2. **Attivare Pages con sorgente "GitHub Actions".** Su GitHub: *Settings* > *Pages* > *Build and deployment* > *Source* > **GitHub Actions**.
@@ -26,7 +26,7 @@ Tutti i contenuti stanno in **un solo file**: [`src/config.js`](src/config.js). 
 - `menu`: `contenuto` e `sblocco` (1 settimana prima della cena).
 - `messaggioRifiuto` e `messaggioFinale` ("Si mangia!").
 
-I contenuti d'esempio sono **segnaposto** e sono marcati come tali: nel file iniziano con `SEGNAPOSTO:` e, finché `segnaposto: true`, l'Invito mostra in fondo a ogni schermata una nota discreta che lo dice. Sostituiscili e poi metti `segnaposto: false`. I test controllano che le date siano coerenti (apertura, Menù, Curiosità).
+I contenuti d'esempio sono **segnaposto** e sono marcati come tali: nel file iniziano con `SEGNAPOSTO:` e, finché `segnaposto: true`, l'Invito mostra in fondo a ogni schermata una nota discreta che lo dice. Sostituiscili e poi metti `segnaposto: false`. I test controllano che le date siano coerenti (apertura, Menù, Curiosità), che ogni offset `+01:00`/`+02:00` sia quello giusto per quel giorno e che i marcatori `SEGNAPOSTO:` spariscano quando metti `segnaposto: false`.
 
 ## Da sostituire prima di condividere il link
 
@@ -47,7 +47,7 @@ Non scrivere mai l'indirizzo di casa: il repository è pubblico e l'Invito non l
 ## Anteprima del link, indicizzazione, risorse esterne
 
 - Titolo e descrizione dell'anteprima (in `index.html`) sono generici: non anticipano messaggi, nomi, Menù né indirizzo. Se li cambi, tienili così.
-- La pagina chiede ai motori di ricerca di non indicizzarla (`<meta name="robots" content="noindex, nofollow">`). Non c'è un `robots.txt` di proposito: su un sito di progetto GitHub Pages (`utente.github.io/the-dinner/`) i crawler leggono solo quello della radice del dominio, e un `Disallow` impedirebbe comunque di leggere il `noindex`.
+- La pagina chiede ai motori di ricerca di non indicizzarla (`<meta name="robots" content="noindex, nofollow">`). Non c'è un `robots.txt` di proposito: con GitHub Pages in versione "progetto" (`utente.github.io/the-dinner/`) i crawler leggono solo quello della radice del dominio, e un `Disallow` impedirebbe comunque di leggere il `noindex`.
 - Nessuna richiesta a domini esterni: font di sistema, nessuna CDN, nessun analytics. Lo stile è in [`src/style.css`](src/style.css); se cambi i colori, rifai i conti dei contrasti (il commento in cima al file spiega le soglie).
 - Le animazioni sono leggere e si disattivano con `prefers-reduced-motion`.
 
@@ -55,7 +55,7 @@ Due **Invitati** il cui nome è uguale una volta normalizzato (maiuscole, spazi 
 
 ## Provare le date: `?now=`
 
-Aggiungi `?now=<data ISO>` al link per simulare la data corrente, per esempio `?now=2026-11-28T20:00:00+01:00` per vedere l'apertura. Da quell'istante il tempo scorre a velocità reale. Un valore non valido viene ignorato e si usa l'ora reale.
+Aggiungi `?now=<data ISO>` al link per simulare la data corrente, per esempio `?now=2026-11-28T20:00:00+01:00` per vedere l'apertura. Da quell'istante il tempo scorre a velocità reale. Sono accettate solo date o data-ora ISO 8601 (per esempio `2026-11-28` o `2026-11-28T20:00:00+01:00`); qualunque altro valore (`?now=1`, `?now=2026`, testo libero) viene ignorato e si usa l'ora reale.
 
 ## Sviluppo
 

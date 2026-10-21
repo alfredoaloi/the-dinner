@@ -5,14 +5,15 @@ import { config } from './config.js';
 import { creaMemoria } from './memoria.js';
 import { computeView } from './view.js';
 import { creaTempoMancante } from './tempo.js';
+import { leggiIstanteSimulato } from './orologio.js';
 
 /**
- * Orologio dell'Invito. Con `?now=<data ISO>` valida, l'istante indicato è il
+ * Orologio dell'Invito. Con `?now=<data ISO>` valida (src/orologio.js), l'istante indicato è il
  * punto di partenza e poi il tempo scorre a velocità reale; altrimenti ora reale.
  */
 function creaOrologio(ricerca) {
-  const simulato = Date.parse(new URLSearchParams(ricerca).get('now') ?? '');
-  if (Number.isNaN(simulato)) {
+  const simulato = leggiIstanteSimulato(new URLSearchParams(ricerca).get('now'));
+  if (simulato === undefined) {
     return () => Date.now();
   }
   const partenza = Date.now();
@@ -95,7 +96,7 @@ function modulo(messaggioRifiuto) {
   if (messaggioRifiuto) {
     const rifiuto = crea('div', undefined, 'rifiuto');
     rifiuto.setAttribute('role', 'alert');
-    rifiuto.append(crea('strong', 'Accesso negato'), crea('span', messaggioRifiuto));
+    rifiuto.append(crea('strong', 'Ingresso negato'), crea('span', messaggioRifiuto));
     form.append(rifiuto);
   }
 
@@ -178,7 +179,7 @@ function disegnaVista(vista) {
 
   switch (vista.kind) {
     case 'chiuso':
-      riga = rigaDiStato('Accesso chiuso');
+      riga = rigaDiStato('Ingresso chiuso');
       contenuto.push(
         crea('p', "L'Invito non è ancora aperto: gli addetti stanno ancora apparecchiando."),
         crea('p', 'Torna tra:', 'didascalia'),
@@ -195,7 +196,7 @@ function disegnaVista(vista) {
       break;
     }
     case 'dentro': {
-      riga = rigaDiStato('Accesso consentito', true);
+      riga = rigaDiStato('Ingresso consentito', true);
       const didascalia = crea('p', 'Alla cena mancano:', 'didascalia');
       const conto = countdown('Tempo che manca alla cena', (v) => (v.cena.siMangia ? v.cena.messaggio : v.cena.manca));
       const aggiornaTempoCena = aggiornaCountdown;
