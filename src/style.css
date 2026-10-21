@@ -116,3 +116,20 @@ h1 {
 .messaggio {
   font-size: 1.15rem;
 }
+
+.non-sei-tu {
+  margin-top: 1.5rem;
+  padding: 0.5rem;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--testo);
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.non-sei-tu:focus-visible {
+  outline: 3px solid var(--accento);
+  outline-offset: 2px;
+}
