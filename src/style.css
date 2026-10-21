@@ -1,170 +1,244 @@
+/*
+ * Stile dell'Invito: una finta "area riservata" ironica, da terminale di un
+ * ufficio segretissimo (ma solo per amici). Font di sistema, nessuna risorsa
+ * esterna. Mobile-first: la colonna è una sola e non scorre di lato.
+ *
+ * Contrasti (WCAG 2.x, rapporto di luminanza, calcolati sulla palette qui sotto):
+ *   testo su carta 15.5:1 (su carta-alta 13.7)    tenue su carta 8.4 (su carta-alta 7.5)
+ *   accento su carta 12.3 (su carta-alta 10.8)    avviso su carta 11.5
+ *   negato su carta 8.0 (su carta-alta 7.1)       testo del pulsante (su-accento su accento) 13.1
+ *   linea su carta 4.5 e su carta-alta 4.0: bordi di campi e riquadri, servono 3:1
+ * Se cambi un colore, rifai i conti: servono 4.5:1 per il testo normale e 3:1
+ * per testo grande e bordi dei campi.
+ */
+
 * {
   box-sizing: border-box;
 }
 
 :root {
-  --sfondo: #1b1a2e;
-  --testo: #f3efe6;
-  --accento: #f4b942;
+  color-scheme: dark;
+
+  --sfondo: #0b100e;
+  --carta: #121a16;
+  --carta-alta: #1a2620;
+  --testo: #e9f2ec;
+  --tenue: #a3b8ab;
+  --accento: #62f0a4;
+  --avviso: #ffc857;
+  --negato: #ff8f80;
+  --linea: #5a8a70;
+  --su-accento: #06130c;
+
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --corpo: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
 }
 
 html {
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--corpo);
   background: var(--sfondo);
   color: var(--testo);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1.5rem 1rem;
+  padding: 1.25rem 1rem;
   overflow-wrap: anywhere;
+  /* righe di monitor, appena accennate */
+  background:
+    repeating-linear-gradient(to bottom, transparent 0 3px, rgba(98, 240, 164, 0.035) 3px 4px),
+    radial-gradient(ellipse at top, #15251c 0%, var(--sfondo) 60%);
+  background-color: var(--sfondo);
 }
 
+/* La scheda dell'Invito */
 .invito {
+  position: relative;
   width: 100%;
-  max-width: 32rem;
+  max-width: 34rem;
+  padding: 1.5rem 1.1rem 1.25rem;
   text-align: center;
   line-height: 1.5;
+  background: var(--carta);
+  border: 1px solid var(--linea);
+  border-radius: 0.35rem;
+  box-shadow: 0 0 0 4px var(--sfondo), 0 0 0 5px rgba(90, 138, 112, 0.45), 0 1.5rem 3rem rgba(0, 0, 0, 0.5);
+}
+
+/* Riga di stato in alto: spia + etichetta + timbro */
+.stato {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem 1rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px dashed var(--linea);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .etichetta {
-  margin: 0 0 0.5rem;
-  font-size: 0.85rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  color: var(--tenue);
+}
+
+.spia {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--accento);
+  box-shadow: 0 0 0.5rem var(--accento);
+}
+
+.timbro {
+  margin: 0;
+  padding: 0.15rem 0.5rem;
+  color: var(--avviso);
+  border: 2px solid currentColor;
+  border-radius: 0.2rem;
+  font-weight: 700;
+  transform: rotate(-3deg);
+}
+
+.timbro-ok {
   color: var(--accento);
 }
 
 h1 {
-  margin: 0 0 1rem;
+  margin: 0 0 0.75rem;
   font-size: 2rem;
-  line-height: 1.2;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
 }
 
+p {
+  margin-top: 0;
+}
+
+.invito > p {
+  margin-bottom: 0.75rem;
+}
+
+.invito > .didascalia {
+  margin: 1.25rem 0 0;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tenue);
+}
+
+.invito > .messaggio {
+  margin: 1rem 0 0.25rem;
+  padding: 0.85rem 1rem;
+  font-size: 1.1rem;
+  text-align: left;
+  background: var(--carta-alta);
+  border-left: 3px solid var(--accento);
+  border-radius: 0 0.3rem 0.3rem 0;
+}
+
+/* Countdown: quattro colonne, numero sopra e unità sotto */
 .countdown {
-  margin-top: 1.5rem;
-  font-size: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.4rem;
+  margin-top: 0.5rem;
   font-variant-numeric: tabular-nums;
   color: var(--accento);
 }
 
 .countdown .unita {
-  display: inline-block;
-  margin: 0 0.4rem;
+  display: block;
+  padding: 0.55rem 0.15rem;
+  background: var(--carta-alta);
+  border: 1px solid var(--linea);
+  border-radius: 0.3rem;
   white-space: nowrap;
 }
 
 .countdown .valore {
+  display: block;
+  font-family: var(--mono);
+  font-size: 1.75rem;
   font-weight: 700;
+  line-height: 1.1;
 }
 
 .countdown .nome-unita {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tenue);
+}
+
+/* Quando al posto dei numeri c'è un testo ("Si mangia!") */
+.countdown-testo {
+  display: block;
+  padding: 0.75rem 0.5rem;
+  font-family: var(--mono);
+  font-size: 2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  background: var(--carta-alta);
+  border: 1px solid var(--accento);
+  border-radius: 0.3rem;
+}
+
+/* Sezioni (Menù, Curiosità) */
+.menu,
+.curiosita {
+  margin-top: 1.75rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--linea);
+}
+
+.menu h2,
+.curiosita h2 {
+  margin: 0 0 0.6rem;
+  font-family: var(--mono);
   font-size: 0.85rem;
-  color: var(--testo);
-}
-
-.ingresso {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
-  text-align: left;
-}
-
-.ingresso label {
-  font-size: 0.9rem;
-  color: var(--accento);
-}
-
-.ingresso input {
-  width: 100%;
-  padding: 0.75rem 0.9rem;
-  font: inherit;
-  font-size: 1rem; /* almeno 16px: evita lo zoom automatico su iOS */
-  color: var(--testo);
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(243, 239, 230, 0.4);
-  border-radius: 0.5rem;
-}
-
-.ingresso input:focus-visible,
-.ingresso button:focus-visible {
-  outline: 3px solid var(--accento);
-  outline-offset: 2px;
-}
-
-.ingresso button {
-  padding: 0.75rem 1rem;
-  font: inherit;
-  font-weight: 600;
-  color: var(--sfondo);
-  background: var(--accento);
-  border: 0;
-  border-radius: 0.5rem;
-  cursor: pointer;
-}
-
-.rifiuto {
-  margin: 0.25rem 0 0;
-  color: #ffb4a8;
-}
-
-.messaggio {
-  font-size: 1.15rem;
-}
-
-.menu {
-  margin-top: 2rem;
-}
-
-.menu h2 {
-  margin: 0 0 0.5rem;
-  font-size: 1.25rem;
-  color: var(--accento);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--avviso);
 }
 
 .menu p {
   margin: 0;
 }
 
-.menu .countdown {
-  margin-top: 0.75rem;
-  font-size: 1.15rem;
+.menu .countdown,
+.teaser-curiosita .countdown {
+  margin-top: 0.6rem;
 }
 
-.non-sei-tu {
-  margin-top: 1.5rem;
-  padding: 0.5rem;
-  font: inherit;
-  font-size: 0.9rem;
-  color: var(--testo);
-  background: none;
-  border: 0;
-  text-decoration: underline;
-  cursor: pointer;
+.menu .countdown .valore,
+.teaser-curiosita .countdown .valore {
+  font-size: 1.35rem;
 }
 
-.non-sei-tu:focus-visible {
-  outline: 3px solid var(--accento);
-  outline-offset: 2px;
+.menu .countdown-testo {
+  font-size: 1.35rem;
 }
 
-/* Sezione Curiosità */
 .curiosita {
-  margin-top: 2rem;
   text-align: left;
-}
-
-.curiosita h2 {
-  margin: 0 0 0.75rem;
-  font-size: 0.85rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--accento);
 }
 
 .lista-curiosita {
@@ -173,7 +247,11 @@ h1 {
 }
 
 .lista-curiosita li + li {
-  margin-top: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.lista-curiosita li::marker {
+  color: var(--accento);
 }
 
 .teaser-curiosita {
@@ -184,9 +262,181 @@ h1 {
 .teaser-curiosita p {
   margin: 0;
   font-size: 0.9rem;
+  color: var(--tenue);
 }
 
-.teaser-curiosita .countdown {
-  margin-top: 0.5rem;
-  font-size: 1.15rem;
+/* L'Ingresso: campo del nome con etichetta */
+.ingresso {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 1.25rem;
+  text-align: left;
+}
+
+.ingresso label {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accento);
+}
+
+.ingresso input {
+  width: 100%;
+  padding: 0.8rem 0.9rem;
+  font: inherit;
+  font-family: var(--mono);
+  font-size: 1rem; /* almeno 16px: evita lo zoom automatico su iOS */
+  color: var(--testo);
+  background: var(--carta-alta);
+  border: 1px solid var(--linea);
+  border-radius: 0.3rem;
+}
+
+.ingresso input:focus {
+  border-color: var(--accento);
+}
+
+.ingresso button {
+  min-height: 2.9rem;
+  padding: 0.75rem 1rem;
+  font: inherit;
+  font-family: var(--mono);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--su-accento);
+  background: var(--accento);
+  border: 0;
+  border-radius: 0.3rem;
+  cursor: pointer;
+}
+
+input:focus-visible,
+button:focus-visible {
+  outline: 3px solid var(--avviso);
+  outline-offset: 2px;
+}
+
+.rifiuto {
+  margin: 0.25rem 0 0;
+  padding: 0.75rem 0.9rem;
+  color: var(--negato);
+  background: var(--carta-alta);
+  border: 1px solid var(--negato);
+  border-radius: 0.3rem;
+}
+
+.rifiuto strong {
+  display: block;
+  margin-bottom: 0.15rem;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.non-sei-tu {
+  display: block;
+  margin: 1.5rem auto 0;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--tenue);
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Nota discreta sui contenuti segnaposto (visibile finché config.segnaposto è true) */
+.invito > .nota-segnaposto {
+  margin: 1.5rem 0 0;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--linea);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--tenue);
+}
+
+/* Piccoli movimenti, solo per chi non ha chiesto di ridurli */
+@media (prefers-reduced-motion: no-preference) {
+  .invito > * {
+    animation: entra 0.5s ease-out both;
+  }
+  .invito > :nth-child(2) { animation-delay: 0.06s; }
+  .invito > :nth-child(3) { animation-delay: 0.12s; }
+  .invito > :nth-child(4) { animation-delay: 0.18s; }
+  .invito > :nth-child(n + 5) { animation-delay: 0.24s; }
+
+  .spia {
+    animation: lampeggia 1.8s ease-in-out infinite;
+  }
+
+  .timbro {
+    animation: timbra 0.35s cubic-bezier(0.2, 1.6, 0.4, 1) 0.2s both;
+  }
+
+  .rifiuto {
+    animation: scuoti 0.4s ease-in-out;
+  }
+
+  .ingresso button {
+    transition: transform 0.12s ease-out, filter 0.12s ease-out;
+  }
+
+  .ingresso button:hover {
+    filter: brightness(1.1);
+  }
+
+  .ingresso button:active {
+    transform: translateY(1px) scale(0.99);
+  }
+}
+
+@keyframes entra {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes lampeggia {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+@keyframes timbra {
+  from { opacity: 0; transform: rotate(-3deg) scale(1.8); }
+  to { opacity: 1; transform: rotate(-3deg) scale(1); }
+}
+
+@keyframes scuoti {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-5px); }
+  40%, 80% { transform: translateX(5px); }
+}
+
+/* Schermi stretti */
+@media (max-width: 22rem) {
+  h1 {
+    font-size: 1.6rem;
+  }
+  .countdown .valore {
+    font-size: 1.4rem;
+  }
+  .countdown .nome-unita {
+    font-size: 0.65rem;
+    letter-spacing: 0;
+  }
+}
+
+@media (min-width: 40rem) {
+  .invito {
+    padding: 2rem 2rem 1.5rem;
+  }
+  h1 {
+    font-size: 2.4rem;
+  }
 }

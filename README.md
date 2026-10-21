@@ -26,7 +26,30 @@ Tutti i contenuti stanno in **un solo file**: [`src/config.js`](src/config.js). 
 - `menu`: `contenuto` e `sblocco` (1 settimana prima della cena).
 - `messaggioRifiuto` e `messaggioFinale` ("Si mangia!").
 
-I contenuti d'esempio sono **segnaposto** e sono marcati come tali: sostituiscili e poi metti `segnaposto: false`. I test controllano che le date siano coerenti (apertura, Menù, Curiosità).
+I contenuti d'esempio sono **segnaposto** e sono marcati come tali: nel file iniziano con `SEGNAPOSTO:` e, finché `segnaposto: true`, l'Invito mostra in fondo a ogni schermata una nota discreta che lo dice. Sostituiscili e poi metti `segnaposto: false`. I test controllano che le date siano coerenti (apertura, Menù, Curiosità).
+
+## Da sostituire prima di condividere il link
+
+Tutto in [`src/config.js`](src/config.js). Spunta ogni voce:
+
+- [ ] **Data della cena** (`cena`): data e ora vere, con offset `+01:00` (ora solare) o `+02:00` (ora legale).
+- [ ] **Data di apertura** (`apertura`): esattamente 2 settimane prima della cena.
+- [ ] **Invitati** (`invitati`): i nomi veri, uno principale per persona, senza alias. Due nomi uguali una volta normalizzati bloccano l'Invito.
+- [ ] **Messaggi personalizzati**: un `messaggio` vero per ogni Invitato.
+- [ ] **Curiosità** (`curiosita`): i testi veri, ciascuno con la sua data di `sblocco` tra l'apertura e la cena.
+- [ ] **Menù** (`menu`): il `contenuto` vero e lo `sblocco`, esattamente 1 settimana prima della cena.
+- [ ] **Date di sblocco**: ricontrollale tutte dopo aver cambiato la cena (i test falliscono se non tornano).
+- [ ] **Segnaposto**: togli i `SEGNAPOSTO:` dai testi e metti `segnaposto: false` (così sparisce la nota in fondo alla pagina).
+- [ ] Prova ogni fase con `?now=` (vedi sotto), poi `npm test`.
+
+Non scrivere mai l'indirizzo di casa: il repository è pubblico e l'Invito non lo mostra, né deve mostrarlo. Se vuoi dirlo agli amici, fallo in chat.
+
+## Anteprima del link, indicizzazione, risorse esterne
+
+- Titolo e descrizione dell'anteprima (in `index.html`) sono generici: non anticipano messaggi, nomi, Menù né indirizzo. Se li cambi, tienili così.
+- La pagina chiede ai motori di ricerca di non indicizzarla (`<meta name="robots" content="noindex, nofollow">`). Non c'è un `robots.txt` di proposito: su un sito di progetto GitHub Pages (`utente.github.io/the-dinner/`) i crawler leggono solo quello della radice del dominio, e un `Disallow` impedirebbe comunque di leggere il `noindex`.
+- Nessuna richiesta a domini esterni: font di sistema, nessuna CDN, nessun analytics. Lo stile è in [`src/style.css`](src/style.css); se cambi i colori, rifai i conti dei contrasti (il commento in cima al file spiega le soglie).
+- Le animazioni sono leggere e si disattivano con `prefers-reduced-motion`.
 
 Due **Invitati** il cui nome è uguale una volta normalizzato (maiuscole, spazi e accenti non contano) sono un errore: l'Invito non parte e mostra un messaggio chiaro.
 
