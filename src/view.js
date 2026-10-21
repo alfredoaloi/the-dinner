@@ -13,7 +13,10 @@
 //   { kind: 'dentro', messaggio, cena: { siMangia: false, manca: Tempo }
 //                                    | { siMangia: true, messaggio },
 //                     menu: { sbloccato: false, manca: Tempo }
-//                         | { sbloccato: true, contenuto } }
+//                         | { sbloccato: true, contenuto },
+//                     curiosita: { sbloccate: [testo], prossima: Tempo | undefined } }
+//   curiosita.sbloccate  i testi delle Curiosità sbloccate, in ordine di data di sblocco
+//   curiosita.prossima   tempo mancante alla prossima ancora bloccata; assente se sono tutte sbloccate
 // dove Tempo = { giorni, ore, minuti, secondi }, mai negativo.
 
 /**
@@ -61,6 +64,22 @@ function statoMenu(config, adesso) {
   return { sbloccato: false, manca: tempoMancante(sblocco - adesso) };
 }
 
+/**
+ * Sezione Curiosità: i testi già sbloccati in ordine di data di sblocco, più il tempo
+ * mancante alla prossima ancora bloccata (`prossima` è undefined quando sono tutte sbloccate).
+ * Una Curiosità è sbloccata dall'istante di sblocco in poi.
+ */
+function statoCuriosita(config, adesso) {
+  const ordinate = (config.curiosita ?? [])
+    .map((c) => ({ testo: c.testo, sblocco: Date.parse(c.sblocco) }))
+    .sort((a, b) => a.sblocco - b.sblocco);
+  const prossima = ordinate.find((c) => c.sblocco > adesso);
+  return {
+    sbloccate: ordinate.filter((c) => c.sblocco <= adesso).map((c) => c.testo),
+    prossima: prossima && tempoMancante(prossima.sblocco - adesso),
+  };
+}
+
 /** Lancia un errore chiaro se due Invitati hanno lo stesso nome normalizzato. */
 function verificaConfigurazione(config) {
   const visti = new Map();
@@ -97,5 +116,6 @@ export function computeView(config, now, nomeScritto) {
     messaggio: invitato.messaggio,
     cena: statoCena(config, adesso),
     menu: statoMenu(config, adesso),
+    curiosita: statoCuriosita(config, adesso),
   };
 }

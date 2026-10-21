@@ -246,3 +246,65 @@ test('il Menù della configurazione reale ha contenuto e si sblocca una settiman
   assert.equal(Date.parse(configReale.cena) - Date.parse(configReale.menu.sblocco), 7 * 86400_000);
   assert.ok(configReale.menu.contenuto.length > 0);
 });
+
+// Curiosità: tre voci, volutamente NON in ordine di data nella configurazione.
+const configCuriosita = {
+  ...config,
+  curiosita: [
+    { testo: 'Terza', sblocco: '2030-06-10T20:00:00+02:00' },
+    { testo: 'Prima', sblocco: '2030-06-03T20:00:00+02:00' },
+    { testo: 'Seconda', sblocco: '2030-06-06T20:00:00+02:00' },
+  ],
+};
+const SBLOCCO_PRIMA = Date.parse('2030-06-03T20:00:00+02:00');
+const SBLOCCO_SECONDA = Date.parse('2030-06-06T20:00:00+02:00');
+const SBLOCCO_TERZA = Date.parse('2030-06-10T20:00:00+02:00');
+const curiositaA = (ora) => computeView(configCuriosita, ora, 'Mario Rossi').curiosita;
+
+test('nessuna Curiosità sbloccata: solo il teaser con il tempo alla prima', () => {
+  const ora = SBLOCCO_PRIMA - (1 * 86400 + 3 * 3600 + 4 * 60 + 5) * 1000; // dopo l'apertura dell'Invito
+  assert.deepEqual(curiositaA(ora), {
+    sbloccate: [],
+    prossima: { giorni: 1, ore: 3, minuti: 4, secondi: 5 },
+  });
+});
+
+test('alcune Curiosità sbloccate: solo quelle passate e il tempo alla prossima ancora bloccata', () => {
+  const ora = SBLOCCO_SECONDA + (1 * 86400 + 2 * 3600) * 1000;
+  assert.deepEqual(curiositaA(ora), {
+    sbloccate: ['Prima', 'Seconda'],
+    // Dal 7 giugno alle 22:00 al 10 giugno alle 20:00 mancano 2 giorni e 22 ore.
+    prossima: { giorni: 2, ore: 22, minuti: 0, secondi: 0 },
+  });
+});
+
+test('tutte le Curiosità sbloccate: nessun teaser', () => {
+  const view = curiositaA(SBLOCCO_TERZA + 1000);
+  assert.deepEqual(view, { sbloccate: ['Prima', 'Seconda', 'Terza'], prossima: undefined });
+});
+
+test("le Curiosità sono in ordine di data di sblocco, qualunque sia l'ordine nella configurazione", () => {
+  assert.deepEqual(curiositaA(SBLOCCO_TERZA).sbloccate, ['Prima', 'Seconda', 'Terza']);
+  const rovesciata = { ...configCuriosita, curiosita: [...configCuriosita.curiosita].reverse() };
+  assert.deepEqual(
+    computeView(rovesciata, SBLOCCO_TERZA, 'Mario Rossi').curiosita.sbloccate,
+    ['Prima', 'Seconda', 'Terza'],
+  );
+});
+
+test("una Curiosità è sbloccata esattamente all'istante di sblocco, non un istante prima", () => {
+  assert.deepEqual(curiositaA(SBLOCCO_PRIMA - 1), {
+    sbloccate: [],
+    prossima: { giorni: 0, ore: 0, minuti: 0, secondi: 1 },
+  });
+  assert.deepEqual(curiositaA(SBLOCCO_PRIMA).sbloccate, ['Prima']);
+  assert.deepEqual(curiositaA(SBLOCCO_SECONDA - 1000).sbloccate, ['Prima']);
+  assert.deepEqual(curiositaA(SBLOCCO_SECONDA).sbloccate, ['Prima', 'Seconda']);
+  assert.equal(curiositaA(SBLOCCO_TERZA - 1000).prossima.secondi, 1);
+  assert.equal(curiositaA(SBLOCCO_TERZA).prossima, undefined);
+});
+
+test('la sezione Curiosità è nella vista solo per un Invitato dentro', () => {
+  assert.equal(computeView(configCuriosita, DOPO_APERTURA, undefined).curiosita, undefined);
+  assert.equal(computeView(configCuriosita, DOPO_APERTURA, 'Luigi Verdi').curiosita, undefined);
+});

@@ -29,6 +29,7 @@ let tentativo = 0;
 let chiaveDisegnata;
 let aggiornaCountdown = () => {};
 let aggiornaMenu = () => {};
+let aggiornaCuriosita = () => {};
 
 function crea(tag, testo, classe) {
   const el = document.createElement(tag);
@@ -120,6 +121,33 @@ function nonSeiTu() {
   return bottone;
 }
 
+/**
+ * La sezione Curiosità: quelle sbloccate in ordine di data, poi (se ne restano) il teaser
+ * con il tempo mancante alla prossima. Si aggiorna sul posto con `aggiornaCuriosita(vista)`:
+ * la lista si ridisegna solo quando se ne sblocca una nuova.
+ */
+function sezioneCuriosita() {
+  const sezione = crea('section', undefined, 'curiosita');
+  const lista = crea('ul', undefined, 'lista-curiosita');
+  const teaser = crea('div', undefined, 'teaser-curiosita');
+  const { elemento: tempo, aggiorna: aggiornaTempo } = creaTempoMancante('Tempo che manca alla prossima Curiosità');
+  teaser.append(crea('p', 'La prossima Curiosità si sblocca tra:'), tempo);
+  sezione.append(crea('h2', 'Curiosità'), lista, teaser);
+
+  let mostrate = -1;
+  aggiornaCuriosita = ({ curiosita: { sbloccate, prossima } }) => {
+    if (sbloccate.length !== mostrate) {
+      mostrate = sbloccate.length;
+      lista.replaceChildren(...sbloccate.map((testo) => crea('li', testo)));
+    }
+    lista.hidden = sbloccate.length === 0;
+    teaser.hidden = prossima === undefined;
+    if (prossima) aggiornaTempo(prossima);
+    sezione.hidden = sbloccate.length === 0 && prossima === undefined; // nessuna Curiosità in configurazione
+  };
+  return sezione;
+}
+
 function disegnaVista(vista) {
   const titolo = crea('h1', 'Un invito a cena');
   const etichetta = crea('p', 'Area riservata', 'etichetta');
@@ -146,6 +174,7 @@ function disegnaVista(vista) {
         crea('p', vista.messaggio, 'messaggio'),
         countdown('Tempo che manca alla cena', (v) => (v.cena.siMangia ? v.cena.messaggio : v.cena.manca)),
         sezioneMenu(),
+        sezioneCuriosita(),
         nonSeiTu(),
       );
       break;
@@ -177,11 +206,15 @@ function disegna(dopoTentativo = false) {
     chiaveDisegnata = chiave;
     aggiornaCountdown = () => {};
     aggiornaMenu = () => {};
+    aggiornaCuriosita = () => {};
     const campo = disegnaVista(vista);
     if (campo && dopoTentativo) campo.focus();
   }
   aggiornaCountdown(vista);
-  if (vista.kind === 'dentro') aggiornaMenu(vista);
+  if (vista.kind === 'dentro') {
+    aggiornaMenu(vista);
+    aggiornaCuriosita(vista);
+  }
 }
 
 try {

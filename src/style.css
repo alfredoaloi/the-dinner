@@ -152,3 +152,41 @@ h1 {
   outline: 3px solid var(--accento);
   outline-offset: 2px;
 }
+
+/* Sezione Curiosità */
+.curiosita {
+  margin-top: 2rem;
+  text-align: left;
+}
+
+.curiosita h2 {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accento);
+}
+
+.lista-curiosita {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.lista-curiosita li + li {
+  margin-top: 0.5rem;
+}
+
+.teaser-curiosita {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.teaser-curiosita p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.teaser-curiosita .countdown {
+  margin-top: 0.5rem;
+  font-size: 1.15rem;
+}
