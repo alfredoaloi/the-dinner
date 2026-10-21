@@ -14,9 +14,12 @@
 //                                    | { siMangia: true, messaggio } }
 // dove Tempo = { giorni, ore, minuti, secondi }, mai negativo.
 
-/** Scompone una durata in millisecondi in giorni, ore, minuti, secondi (mai negativi). */
+/**
+ * Scompone una durata in millisecondi in giorni, ore, minuti, secondi (mai negativi).
+ * I secondi si arrotondano per eccesso: finché l'istante non è arrivato non si mostra mai zero.
+ */
 function tempoMancante(ms) {
-  const secondiTotali = Math.floor(Math.max(0, ms) / 1000);
+  const secondiTotali = Math.ceil(Math.max(0, ms) / 1000);
   return {
     giorni: Math.floor(secondiTotali / 86400),
     ore: Math.floor((secondiTotali % 86400) / 3600),
