@@ -42,11 +42,11 @@ export const config = {
     },
     {
       nome: 'Graziana',
-      messaggio: 'Ma davvero dobbiamo mangiare senza carne',
+      messaggio: 'Già senza glutine è difficile, ma pure senza caseina che dobbiamo mangiare?',
     },
     {
       nome: 'Alfredo',
-      messaggio: 'Ma nella soppressata la possono mangiare tutti? e il caciocavallo?',
+      messaggio: 'Ma la soppressata la possono mangiare tutti? e il caciocavallo?',
     },
   ],
 
