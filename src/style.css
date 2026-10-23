@@ -439,6 +439,15 @@ p {
   margin-top: 0.15rem;
 }
 
+.menu .menu-sottotitolo {
+  margin: 0 0 0.3rem;
+  font-style: italic;
+}
+
+.menu .voce-nota {
+  display: block;
+}
+
 .menu .countdown {
   margin-top: 0.6rem;
 }

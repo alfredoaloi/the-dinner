@@ -93,18 +93,25 @@ function countdown(etichetta, leggi) {
   return elemento;
 }
 
-/** Una sezione del Menù sbloccato: sottotitolo con la lista puntata delle sue voci. */
-function sezioneDelMenu({ titolo, voci }) {
+/** Una Voce del Menù: il nome seguito dalla Nota. Solo testo (textContent), mai HTML interpretato. */
+function voceDelMenu({ nome, nota }) {
+  const voce = crea('li');
+  voce.append(crea('strong', nome, 'voce-nome'), crea('em', nota, 'voce-nota'));
+  return voce;
+}
+
+/** Una Sezione del Menù sbloccato: titolo, sottotitolo e la lista puntata delle sue Voci (nome e Nota). */
+function sezioneDelMenu({ titolo, sottotitolo, voci }) {
   const gruppo = crea('div', undefined, 'menu-sezione');
   const elenco = crea('ul');
-  elenco.append(...voci.map((voce) => crea('li', voce)));
-  gruppo.append(crea('h3', titolo), elenco);
+  elenco.append(...voci.map(voceDelMenu));
+  gruppo.append(crea('h3', titolo), crea('p', sottotitolo, 'menu-sottotitolo'), elenco);
   return gruppo;
 }
 
 /**
  * La sezione Menù: finché è bloccata mostra solo il teaser con il countdown allo
- * sblocco; dall'istante di sblocco mostra tutte le sezioni (sottotitolo e lista puntata). Si aggiorna sul posto
+ * sblocco; dall'istante di sblocco mostra tutte le sezioni (titolo, sottotitolo e voci con nota). Si aggiorna sul posto
  * (`aggiornaMenu`), quindi passa da teaser a contenuto senza ridisegnare la pagina.
  */
 function sezioneMenu() {
