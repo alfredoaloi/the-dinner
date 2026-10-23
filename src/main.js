@@ -150,12 +150,12 @@ function sezioneCuriosita() {
   return sezione;
 }
 
-/** La riga di stato in alto: spia, etichetta "Area riservata" e un timbro che dice a che punto siamo. */
+/** La riga di stato in alto: spia, etichetta "Lista invitati" e un timbro che dice a che punto siamo. */
 function rigaDiStato(testoTimbro, riconosciuto = false) {
   const spia = crea('span', undefined, 'spia');
   spia.setAttribute('aria-hidden', 'true');
   const etichetta = crea('p', undefined, 'etichetta');
-  etichetta.append(spia, 'Area riservata');
+  etichetta.append(spia, 'Lista invitati');
   const timbro = crea('p', testoTimbro, riconosciuto ? 'timbro timbro-ok' : 'timbro');
   const riga = crea('div', undefined, 'stato');
   riga.append(etichetta, timbro);
@@ -173,30 +173,30 @@ function notaSegnaposto() {
 
 function disegnaVista(vista) {
   const titolo = crea('h1', 'Un invito a cena');
-  const contenuto = [titolo];
+  const contenuto = [titolo, crea('p', 'per festeggiare il mio compleanno', 'sottotitolo')];
   let riga;
   let campoDaFocalizzare;
 
   switch (vista.kind) {
     case 'chiuso':
-      riga = rigaDiStato('Ingresso chiuso');
+      riga = rigaDiStato('Ancora chiuso');
       contenuto.push(
-        crea('p', "L'Invito non è ancora aperto: gli addetti stanno ancora apparecchiando."),
+        crea('p', "L'Invito non è ancora aperto: stiamo ancora gonfiando i palloncini."),
         crea('p', 'Torna tra:', 'didascalia'),
         countdown("Tempo che manca all'apertura dell'Invito", (v) => v.mancaAllApertura),
       );
       break;
     case 'ingresso':
     case 'rifiutato': {
-      riga = rigaDiStato(vista.kind === 'rifiutato' ? 'Non in lista' : 'Solo amici');
-      contenuto.push(crea('p', 'Area a numero chiuso. Scrivi il tuo nome per entrare: niente password, ci fidiamo (quasi).'));
+      riga = rigaDiStato(vista.kind === 'rifiutato' ? 'Non in lista' : 'Solo invitati');
+      contenuto.push(crea('p', 'Festa a numero chiuso. Scrivi il tuo nome per entrare: niente password, ci fidiamo (quasi).'));
       const { form, campo } = modulo(vista.kind === 'rifiutato' ? vista.messaggio : undefined);
       contenuto.push(form);
       campoDaFocalizzare = campo;
       break;
     }
     case 'dentro': {
-      riga = rigaDiStato('Ingresso consentito', true);
+      riga = rigaDiStato('Sei in lista!', true);
       const didascalia = crea('p', 'Alla cena mancano:', 'didascalia');
       const conto = countdown('Tempo che manca alla cena', (v) => (v.cena.siMangia ? v.cena.messaggio : v.cena.manca));
       const aggiornaTempoCena = aggiornaCountdown;
