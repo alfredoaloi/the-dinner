@@ -27,6 +27,7 @@ const memoria = creaMemoria(() => window.localStorage);
 let nomeScritto = memoria.leggi();
 let nomeDaMemoria = nomeScritto !== undefined; // il nome viene dal browser, non dall'Ingresso di questa visita
 let tentativo = 0;
+let scoppioFatto = false; // lo scoppio di coriandoli parte al massimo una volta per caricamento della pagina
 let chiaveDisegnata;
 let aggiornaCountdown = () => {};
 let aggiornaMenu = () => {};
@@ -37,6 +38,35 @@ function crea(tag, testo, classe) {
   if (testo !== undefined) el.textContent = testo;
   if (classe) el.className = classe;
   return el;
+}
+
+/**
+ * Lo scoppio di coriandoli all'Ingresso riuscito: una sola volta per caricamento della pagina,
+ * mai con il movimento ridotto. I pezzi vanno nello strato statico `.scoppio` (index.html), che
+ * non è nella scheda ridisegnata, e vengono tolti appena finiscono l'animazione.
+ */
+function scoppio() {
+  if (scoppioFatto) return;
+  scoppioFatto = true;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const strato = document.querySelector('.scoppio');
+  if (!strato) return;
+
+  const pezzi = [];
+  for (let i = 0; i < 32; i += 1) {
+    const angolo = (-160 + Math.random() * 140) * (Math.PI / 180); // ventaglio verso l'alto
+    const distanza = 18 + Math.random() * 32; // in vmin: resta dentro lo schermo
+    const pezzo = crea('span', undefined, `pezzo c${i % 5}${i % 3 === 0 ? ' tondo' : ''}`);
+    pezzo.style.setProperty('--dx', `${(Math.cos(angolo) * distanza).toFixed(1)}vmin`);
+    pezzo.style.setProperty('--dy', `${(Math.sin(angolo) * distanza).toFixed(1)}vmin`);
+    pezzo.style.setProperty('--caduta', `${(14 + Math.random() * 12).toFixed(1)}vmin`);
+    pezzo.style.setProperty('--giro', `${Math.round((Math.random() - 0.5) * 900)}deg`);
+    pezzo.style.setProperty('--durata', `${(1.3 + Math.random() * 0.6).toFixed(2)}s`);
+    pezzo.addEventListener('animationend', () => pezzo.remove(), { once: true });
+    pezzi.push(pezzo);
+  }
+  strato.append(...pezzi);
+  setTimeout(() => pezzi.forEach((pezzo) => pezzo.remove()), 3000); // rete di sicurezza se l'animazione non parte
 }
 
 /** Un countdown che si aggiorna sul posto; `leggi(vista)` restituisce il Tempo (o il testo finale) da mostrare. */
@@ -230,6 +260,7 @@ function disegna(dopoTentativo = false) {
   }
   if (vista.kind === 'dentro' && dopoTentativo && !nomeDaMemoria) {
     memoria.salva(nomeScritto); // solo dopo un Ingresso riuscito
+    scoppio(); // e solo qui: un nome ricordato o il tick non lo fanno partire
   }
   const chiave = `${vista.kind}:${vista.kind === 'dentro' ? vista.messaggio : tentativo}`;
   if (chiave !== chiaveDisegnata) {

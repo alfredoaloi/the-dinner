@@ -51,6 +51,7 @@ Non scrivere mai l'indirizzo di casa: il repository è pubblico e l'Invito non l
 - Nessuna richiesta a domini esterni: font di sistema, nessuna CDN, nessun analytics. Lo stile è in [`src/style.css`](src/style.css); se cambi i colori, vedi "Palette e contrasti" qui sotto.
 - Le animazioni sono leggere e si disattivano con `prefers-reduced-motion` (con il movimento ridotto i palloncini stanno fermi).
 - La cornice di festa (festone, sei palloncini che ondeggiano, coriandoli fissi) è markup statico in `index.html`, dentro `<div class="festa">`, fuori da `<main id="invito">` che `src/main.js` ridisegna: così non riparte né si sposta al tick di ogni secondo o a un cambio di vista. È solo SVG/CSS inline, stile in `src/style.css` (sezione "Cornice di festa"), e riusa i colori di `:root`. Non copre mai la scheda: sta dietro (`z-index`) ed è inerte (`pointer-events: none`, `aria-hidden`).
+- All'Ingresso riuscito parte un solo scoppio di coriandoli (circa due secondi), una volta per caricamento della pagina: non riparte al tick, con un nome ricordato né a un secondo Ingresso. I pezzi li crea `scoppio()` in `src/main.js` nello strato vuoto `<div class="scoppio">` di `index.html` (ritagliato, inerte) e li toglie a fine animazione. Con il movimento ridotto non parte affatto.
 
 Due **Invitati** il cui nome è uguale una volta normalizzato (maiuscole, spazi e accenti non contano) sono un errore: l'Invito non parte e mostra un messaggio chiaro.
 

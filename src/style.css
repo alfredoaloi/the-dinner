@@ -150,6 +150,37 @@ body {
     radial-gradient(circle, var(--turchese) 0 2.5px, transparent 3.0px) 84% 94% / 6px 6px no-repeat;
 }
 
+/* Scoppio di coriandoli: strato fisso che ritaglia (nessuno scroll), sopra la scheda ma inerte.
+   I pezzi li crea e li toglie src/main.js; sono invisibili finché non c'è un'animazione. */
+.scoppio {
+  position: fixed;
+  z-index: 2;
+  inset: 0;
+  overflow: hidden;
+}
+
+.pezzo {
+  position: absolute;
+  left: 50%;
+  top: 60%;
+  width: 0.6rem;
+  height: 0.35rem;
+  opacity: 0;
+  border-radius: 1px;
+}
+
+.pezzo.tondo {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+}
+
+.pezzo.c0 { background: var(--corallo); }
+.pezzo.c1 { background: var(--giallo); }
+.pezzo.c2 { background: var(--turchese); }
+.pezzo.c3 { background: var(--rosa); }
+.pezzo.c4 { background: var(--viola); }
+
 .palloncino {
   position: fixed;
   z-index: 0;
@@ -531,6 +562,10 @@ button:focus-visible {
   .invito > :nth-child(4) { animation-delay: 0.18s; }
   .invito > :nth-child(n + 5) { animation-delay: 0.24s; }
 
+  .pezzo {
+    animation: scoppia var(--durata, 1.6s) cubic-bezier(0.15, 0.7, 0.35, 1) both;
+  }
+
   .spia {
     animation: lampeggia 1.8s ease-in-out infinite;
   }
@@ -564,6 +599,12 @@ button:focus-visible {
 @keyframes ondeggia {
   from { transform: rotate(-4deg); }
   to { transform: rotate(4deg); }
+}
+
+@keyframes scoppia {
+  0% { opacity: 1; transform: translate(0, 0) rotate(0deg) scale(0.6); }
+  45% { opacity: 1; transform: translate(var(--dx), var(--dy)) rotate(calc(var(--giro) * 0.5)) scale(1); }
+  100% { opacity: 0; transform: translate(calc(var(--dx) * 1.15), calc(var(--dy) + var(--caduta))) rotate(var(--giro)) scale(0.9); }
 }
 
 @keyframes lampeggia {
