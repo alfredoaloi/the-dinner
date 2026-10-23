@@ -39,6 +39,13 @@ function crea(tag, testo, classe) {
   return el;
 }
 
+/** Un elenco (<ul> o <ol>) senza puntini; `role="list"` perché con list-style: none Safari/VoiceOver toglie la semantica di elenco. */
+function elencoSenzaPuntini(tag, classe) {
+  const elenco = crea(tag, undefined, classe);
+  elenco.setAttribute('role', 'list');
+  return elenco;
+}
+
 // Scoppio di coriandoli: quanti pezzi e come si aprono.
 const PEZZI_SCOPPIO = 32;
 const CLASSI_COLORE = 5; // classi colore .c0–.c4 di .pezzo in src/style.css: se ne aggiungi una lì, alza questo numero
@@ -107,8 +114,7 @@ function voceDelMenu({ nome, nota }) {
 function sezioneDelMenu({ titolo, sottotitolo, voci }) {
   const tessera = crea('li', undefined, 'menu-sezione');
   const corpo = crea('div', undefined, 'menu-corpo');
-  const elenco = crea('ul', undefined, 'menu-voci');
-  elenco.setAttribute('role', 'list');
+  const elenco = elencoSenzaPuntini('ul', 'menu-voci');
   elenco.append(...voci.map(voceDelMenu));
   corpo.append(crea('h3', titolo), crea('p', sottotitolo, 'menu-sottotitolo'), elenco);
   tessera.append(corpo);
@@ -131,8 +137,7 @@ function sezioneMenu() {
       sbloccatoMostrato = menu.sbloccato;
       if (menu.sbloccato) {
         aggiornaTempo = () => {};
-        const elenco = crea('ol', undefined, 'menu-sezioni');
-        elenco.setAttribute('role', 'list'); // con list-style: none Safari toglie la semantica di elenco
+        const elenco = elencoSenzaPuntini('ol', 'menu-sezioni');
         elenco.append(...menu.sezioni.map(sezioneDelMenu));
         sezione.replaceChildren(crea('h2', 'Si mangia così', 'menu-titolo'), elenco);
       } else {

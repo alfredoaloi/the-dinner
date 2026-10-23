@@ -5,6 +5,10 @@ import { computeView } from '../src/view.js';
 import { config as configReale } from '../src/config.js';
 
 // Sezioni del Menù di prova: stesse nella configurazione di prova e nelle attese.
+// Tutti i testi di un Menù: titoli, sottotitoli, nomi e note delle Voci.
+const testiDelMenu = (sezioni) =>
+  sezioni.flatMap(({ titolo, sottotitolo, voci }) => [titolo, sottotitolo, ...voci.flatMap(({ nome, nota }) => [nome, nota])]);
+
 const SEZIONI = [
   {
     titolo: 'Antipasti',
@@ -207,10 +211,8 @@ test('prima dello sblocco il Menù mostra solo il tempo mancante allo sblocco, s
   const view = computeView(config, ora, 'Mario Rossi');
   assert.deepEqual(view.menu, { sbloccato: false, manca: { giorni: 2, ore: 3, minuti: 4, secondi: 5 } });
   const esposto = JSON.stringify(view);
-  for (const { titolo, sottotitolo, voci } of SEZIONI) {
-    for (const testo of [titolo, sottotitolo, ...voci.flatMap(({ nome, nota }) => [nome, nota])]) {
-      assert.ok(!esposto.includes(testo), `"${testo}" esposto con il Menù bloccato`);
-    }
+  for (const testo of testiDelMenu(SEZIONI)) {
+    assert.ok(!esposto.includes(testo), `"${testo}" esposto con il Menù bloccato`);
   }
 });
 
@@ -382,10 +384,8 @@ test("il Menù reale sbloccato mostra tutte le sezioni, voci e note concordate, 
 
 test('prima dello Sblocco il Menù reale non espone nessun titolo, sottotitolo, nome o nota', () => {
   const esposto = JSON.stringify(computeView(configReale, SBLOCCO_REALE - 1000, 'Mauro'));
-  for (const { titolo, sottotitolo, voci } of configReale.menu.contenuto) {
-    for (const testo of [titolo, sottotitolo, ...voci.flatMap(({ nome, nota }) => [nome, nota])]) {
-      assert.ok(!esposto.includes(testo), `"${testo}" esposto con il Menù bloccato`);
-    }
+  for (const testo of testiDelMenu(configReale.menu.contenuto)) {
+    assert.ok(!esposto.includes(testo), `"${testo}" esposto con il Menù bloccato`);
   }
 });
 

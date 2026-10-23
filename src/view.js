@@ -125,9 +125,9 @@ function verificaMenu(menu) {
       'Configurazione non valida: il Menù deve essere una lista di almeno una sezione, ognuna con titolo, sottotitolo e voci.',
     );
   }
-  sezioni.forEach((sezione, posto) => {
+  sezioni.forEach((sezione, postoSezione) => {
     if (!testoNonVuoto(sezione?.titolo)) {
-      throw new Error(`Configurazione non valida: la sezione ${posto + 1} del Menù non ha un titolo.`);
+      throw new Error(`Configurazione non valida: la sezione ${postoSezione + 1} del Menù non ha un titolo.`);
     }
     if (!testoNonVuoto(sezione.sottotitolo)) {
       throw new Error(`Configurazione non valida: la sezione "${sezione.titolo}" del Menù non ha un sottotitolo.`);
@@ -136,7 +136,7 @@ function verificaMenu(menu) {
     if (!Array.isArray(voci) || voci.length === 0) {
       throw new Error(`Configurazione non valida: la sezione "${sezione.titolo}" del Menù deve avere almeno una voce.`);
     }
-    voci.forEach((voce, posto) => verificaVoce(voce, posto, sezione.titolo));
+    voci.forEach((voce, postoVoce) => verificaVoce(voce, postoVoce, sezione.titolo));
   });
 }
 
