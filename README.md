@@ -48,10 +48,33 @@ Non scrivere mai l'indirizzo di casa: il repository è pubblico e l'Invito non l
 
 - Titolo e descrizione dell'anteprima (in `index.html`) sono generici: non anticipano messaggi, nomi, Menù né indirizzo. Se li cambi, tienili così.
 - La pagina chiede ai motori di ricerca di non indicizzarla (`<meta name="robots" content="noindex, nofollow">`). Non c'è un `robots.txt` di proposito: con GitHub Pages in versione "progetto" (`utente.github.io/the-dinner/`) i crawler leggono solo quello della radice del dominio, e un `Disallow` impedirebbe comunque di leggere il `noindex`.
-- Nessuna richiesta a domini esterni: font di sistema, nessuna CDN, nessun analytics. Lo stile è in [`src/style.css`](src/style.css); se cambi i colori, rifai i conti dei contrasti (il commento in cima al file spiega le soglie).
+- Nessuna richiesta a domini esterni: font di sistema, nessuna CDN, nessun analytics. Lo stile è in [`src/style.css`](src/style.css); se cambi i colori, vedi "Palette e contrasti" qui sotto.
 - Le animazioni sono leggere e si disattivano con `prefers-reduced-motion`.
 
 Due **Invitati** il cui nome è uguale una volta normalizzato (maiuscole, spazi e accenti non contano) sono un errore: l'Invito non parte e mostra un messaggio chiaro.
+
+## Palette e contrasti
+
+L'Invito è chiaro e festoso e ha **solo il tema chiaro**: nessuna variante scura, nemmeno se il dispositivo è in modo scuro (`color-scheme` e `theme-color` in `index.html` sono chiaro/crema). Le variabili colore stanno nel blocco `:root` di [`src/style.css`](src/style.css).
+
+- Sfondo crema (`#fff4e0`), scheda bianca con bordo morbido, testo blu notte (`#1c2352`, mai nero), pulsanti corallo con testo blu notte.
+- Accenti vivaci: corallo, giallo sole, turchese, rosa, viola. Corallo, giallo, turchese e rosa sono solo decorazione o sfondo di tessere (con testo blu notte), perché su bianco non bastano come testo (2.8, 1.5, 2.2 e 2.4:1). Per il testo normale si usano il viola e le varianti scure (`--corallo-scuro`, `--turchese-scuro`, `--rosa-scuro`).
+- Font di sistema, nessuna risorsa esterna: stack arrotondato per i titoli, stack di sistema per il testo.
+
+Contrasti calcolati (WCAG 2.x), soglie 4.5:1 per il testo normale e 3:1 per testo grande, bordi dei campi e anello del focus:
+
+| Coppia | Contrasto |
+| --- | --- |
+| testo su scheda (su scheda in rilievo, su sfondo) | 14.9 (14.1, 13.6) |
+| testo tenue su scheda (su scheda in rilievo) | 7.3 (6.9) |
+| testo del pulsante su pulsante | 5.3 |
+| bordo dei campi su scheda (su scheda in rilievo) | 4.6 (4.4) |
+| anello del focus su scheda (su scheda in rilievo, su sfondo) | 6.9 (6.6, 6.4) |
+| testo del rifiuto su sfondo del rifiuto | 5.7 |
+| viola / corallo scuro / turchese scuro / rosa scuro su scheda | 6.9 / 5.3 / 6.1 / 5.9 |
+| testo blu notte sulle tessere corallo / giallo / turchese / rosa | 5.3 / 9.7 / 6.9 / 6.3 |
+
+[`test/contrasti.test.js`](test/contrasti.test.js) legge le variabili da `:root` e fallisce se una di queste coppie scende sotto soglia: se cambi un colore, lancia `npm test` e aggiorna le cifre qui e nel commento in cima a `src/style.css`.
 
 ## Provare le date: `?now=`
 
