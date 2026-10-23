@@ -49,7 +49,8 @@ Non scrivere mai l'indirizzo di casa: il repository è pubblico e l'Invito non l
 - Titolo e descrizione dell'anteprima (in `index.html`) sono generici: non anticipano messaggi, nomi, Menù né indirizzo. Se li cambi, tienili così.
 - La pagina chiede ai motori di ricerca di non indicizzarla (`<meta name="robots" content="noindex, nofollow">`). Non c'è un `robots.txt` di proposito: con GitHub Pages in versione "progetto" (`utente.github.io/the-dinner/`) i crawler leggono solo quello della radice del dominio, e un `Disallow` impedirebbe comunque di leggere il `noindex`.
 - Nessuna richiesta a domini esterni: font di sistema, nessuna CDN, nessun analytics. Lo stile è in [`src/style.css`](src/style.css); se cambi i colori, vedi "Palette e contrasti" qui sotto.
-- Le animazioni sono leggere e si disattivano con `prefers-reduced-motion`.
+- Le animazioni sono leggere e si disattivano con `prefers-reduced-motion` (con il movimento ridotto i palloncini stanno fermi).
+- La cornice di festa (festone, sei palloncini che ondeggiano, coriandoli fissi) è markup statico in `index.html`, dentro `<div class="festa">`, fuori da `<main id="invito">` che `src/main.js` ridisegna: così non riparte né si sposta al tick di ogni secondo o a un cambio di vista. È solo SVG/CSS inline, stile in `src/style.css` (sezione "Cornice di festa"), e riusa i colori di `:root`. Non copre mai la scheda: sta dietro (`z-index`) ed è inerte (`pointer-events: none`, `aria-hidden`).
 
 Due **Invitati** il cui nome è uguale una volta normalizzato (maiuscole, spazi e accenti non contano) sono un errore: l'Invito non parte e mostra un messaggio chiaro.
 

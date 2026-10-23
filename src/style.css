@@ -26,6 +26,11 @@
  * o sfondo di tessere con testo blu notte.
  * Se cambi un colore, rifai i conti: servono 4.5:1 per il testo normale e 3:1
  * per testo grande, bordi dei campi e anello del focus.
+ *
+ * Struttura: la cornice di festa (festone, palloncini, coriandoli fissi) è markup
+ * statico in index.html, dentro <div class="festa">, FUORI da <main id="invito">
+ * che src/main.js ridisegna: il tick e i cambi di vista non la toccano. Usa solo
+ * gli accenti già in :root (nessun colore nuovo) e sta sempre dietro la scheda.
  */
 
 * {
@@ -81,7 +86,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1.25rem 1rem;
+  padding: 3.75rem 1rem 1.25rem; /* in alto c'è posto per il festone */
+  overflow-x: clip; /* mai scorrimento laterale, qualunque cosa sporga */
   overflow-wrap: anywhere;
   /* due aloni caldi, appena accennati */
   background:
@@ -90,9 +96,95 @@ body {
   background-color: var(--sfondo);
 }
 
+/*
+ * Cornice di festa. Markup statico in index.html (fuori da #invito): festone in cima,
+ * sei palloncini che ondeggiano piano, coriandoli fissi. Tutto aria-hidden, inerte e
+ * dietro la scheda (z-index 0 contro 1): non copre mai Ingresso, countdown, Menù o
+ * Curiosità. I palloncini e i coriandoli sono fixed, quindi non allargano la pagina.
+ */
+.festa {
+  pointer-events: none;
+}
+
+.festa .simboli {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.festone {
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3.5rem;
+  overflow: hidden;
+}
+
+.coriandoli {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  background:
+    radial-gradient(circle, var(--corallo) 0 3.5px, transparent 4.0px) 4% 14% / 8px 8px no-repeat,
+    radial-gradient(circle, var(--turchese) 0 2.5px, transparent 3.0px) 2% 34% / 6px 6px no-repeat,
+    radial-gradient(circle, var(--giallo) 0 4.5px, transparent 5.0px) 6% 52% / 10px 10px no-repeat,
+    radial-gradient(circle, var(--rosa) 0 3.0px, transparent 3.5px) 3% 71% / 7px 7px no-repeat,
+    radial-gradient(circle, var(--viola) 0 3.5px, transparent 4.0px) 5% 90% / 8px 8px no-repeat,
+    radial-gradient(circle, var(--giallo) 0 3.5px, transparent 4.0px) 96% 10% / 8px 8px no-repeat,
+    radial-gradient(circle, var(--rosa) 0 2.5px, transparent 3.0px) 98% 30% / 6px 6px no-repeat,
+    radial-gradient(circle, var(--turchese) 0 4.0px, transparent 4.5px) 94% 48% / 9px 9px no-repeat,
+    radial-gradient(circle, var(--corallo) 0 3.0px, transparent 3.5px) 97% 67% / 7px 7px no-repeat,
+    radial-gradient(circle, var(--giallo) 0 4.5px, transparent 5.0px) 95% 88% / 10px 10px no-repeat,
+    radial-gradient(circle, var(--rosa) 0 2.5px, transparent 3.0px) 14% 8% / 6px 6px no-repeat,
+    radial-gradient(circle, var(--giallo) 0 3.5px, transparent 4.0px) 26% 22% / 8px 8px no-repeat,
+    radial-gradient(circle, var(--viola) 0 2.5px, transparent 3.0px) 10% 44% / 6px 6px no-repeat,
+    radial-gradient(circle, var(--turchese) 0 3.5px, transparent 4.0px) 20% 62% / 8px 8px no-repeat,
+    radial-gradient(circle, var(--corallo) 0 3.0px, transparent 3.5px) 30% 86% / 7px 7px no-repeat,
+    radial-gradient(circle, var(--turchese) 0 3.0px, transparent 3.5px) 86% 18% / 7px 7px no-repeat,
+    radial-gradient(circle, var(--viola) 0 3.5px, transparent 4.0px) 74% 6% / 8px 8px no-repeat,
+    radial-gradient(circle, var(--corallo) 0 2.5px, transparent 3.0px) 80% 40% / 6px 6px no-repeat,
+    radial-gradient(circle, var(--giallo) 0 3.5px, transparent 4.0px) 88% 60% / 8px 8px no-repeat,
+    radial-gradient(circle, var(--rosa) 0 3.0px, transparent 3.5px) 72% 80% / 7px 7px no-repeat,
+    radial-gradient(circle, var(--turchese) 0 2.5px, transparent 3.0px) 84% 94% / 6px 6px no-repeat;
+}
+
+.palloncino {
+  position: fixed;
+  z-index: 0;
+  width: var(--w, 3.4rem);
+  height: calc(var(--w, 3.4rem) * 2.5);
+  overflow: visible;
+  transform-origin: 50% 100%; /* ondeggia come appeso al filo */
+}
+
+/* Telefono: i palloncini sbucano ai bordi, dietro la scheda */
+.sx1 { left: -1.2rem; top: 6%; --w: 3.6rem; }
+.sx2 { left: -1.5rem; top: 38%; --w: 3.2rem; }
+.sx3 { left: -1rem; top: 66%; --w: 3.8rem; }
+.dx1 { right: -1.4rem; top: 20%; --w: 3.4rem; }
+.dx2 { right: -1.1rem; top: 50%; --w: 3.8rem; }
+.dx3 { right: -1.5rem; top: 76%; --w: 3.2rem; }
+
+/* Schermi larghi: colonna centrale e palloncini nelle due fasce laterali */
+@media (min-width: 46rem) {
+  .palloncino {
+    --base: clamp(4.5rem, 6.5vw, 6.5rem);
+    --fascia: calc(50% - 17rem - var(--base) * 1.2); /* spazio libero a lato della scheda */
+  }
+  .sx1 { --w: var(--base); left: calc(var(--fascia) * 0.35); top: 7%; }
+  .sx2 { --w: calc(var(--base) * 0.85); left: calc(var(--fascia) * 0.75); top: 36%; }
+  .sx3 { --w: calc(var(--base) * 1.1); left: calc(var(--fascia) * 0.15); top: 62%; }
+  .dx1 { --w: calc(var(--base) * 0.9); right: calc(var(--fascia) * 0.55); top: 12%; }
+  .dx2 { --w: var(--base); right: calc(var(--fascia) * 0.2); top: 42%; }
+  .dx3 { --w: calc(var(--base) * 0.8); right: calc(var(--fascia) * 0.7); top: 68%; }
+}
+
 /* La scheda dell'Invito */
 .invito {
   position: relative;
+  z-index: 1; /* sopra la cornice di festa */
   width: 100%;
   max-width: 34rem;
   padding: 1.75rem 1.1rem 1.25rem;
@@ -421,6 +513,16 @@ button:focus-visible {
 
 /* Piccoli movimenti, solo per chi non ha chiesto di ridurli */
 @media (prefers-reduced-motion: no-preference) {
+  .palloncino {
+    animation: ondeggia var(--durata, 7s) ease-in-out var(--ritardo, 0s) infinite alternate;
+  }
+  .sx1 { --durata: 7s; --ritardo: -1s; }
+  .sx2 { --durata: 9s; --ritardo: -4s; }
+  .sx3 { --durata: 8s; --ritardo: -6s; }
+  .dx1 { --durata: 8.5s; --ritardo: -2s; }
+  .dx2 { --durata: 7.5s; --ritardo: -5s; }
+  .dx3 { --durata: 9.5s; --ritardo: -3s; }
+
   .invito > * {
     animation: entra 0.5s ease-out both;
   }
@@ -457,6 +559,11 @@ button:focus-visible {
 @keyframes entra {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: none; }
+}
+
+@keyframes ondeggia {
+  from { transform: rotate(-4deg); }
+  to { transform: rotate(4deg); }
 }
 
 @keyframes lampeggia {

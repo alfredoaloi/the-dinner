@@ -21,6 +21,46 @@
   <link rel="stylesheet" href="src/style.css">
 </head>
 <body>
+  <!--
+    Cornice di festa: markup statico, fuori da <main id="invito"> (che src/main.js ridisegna),
+    quindi il tick di ogni secondo e i cambi di vista non la toccano mai. Solo SVG/CSS inline,
+    nessuna richiesta di rete. Gli stili stanno in src/style.css, sezione "Cornice di festa".
+  -->
+  <div class="festa" aria-hidden="true">
+    <svg class="simboli" width="0" height="0" focusable="false">
+      <defs>
+        <symbol id="palloncino" viewBox="0 0 60 150">
+          <path d="M30 90 q-7 14 0 28 t0 28" fill="none" stroke-width="1.5" stroke-linecap="round" style="stroke: var(--tenue)" opacity=".55"/>
+          <path d="M30 4 C48 4 58 22 58 42 C58 62 42 78 30 82 C18 78 2 62 2 42 C2 22 12 4 30 4 Z" fill="currentColor"/>
+          <path d="M30 82 L24.5 91 L35.5 91 Z" fill="currentColor"/>
+          <ellipse cx="19" cy="25" rx="5" ry="10" transform="rotate(25 19 25)" style="fill: var(--carta)" opacity=".5"/>
+        </symbol>
+      </defs>
+    </svg>
+
+    <svg class="festone" width="100%" height="56" focusable="false">
+      <defs>
+        <pattern id="bandierine" width="160" height="56" patternUnits="userSpaceOnUse">
+          <path d="M0 4 Q80 28 160 4" fill="none" stroke-width="2" style="stroke: var(--tenue)" opacity=".7"/>
+          <path d="M5 9 L35 9 L20 43 Z" style="fill: var(--corallo)"/>
+          <path d="M45 15 L75 15 L60 49 Z" style="fill: var(--giallo)"/>
+          <path d="M85 15 L115 15 L100 49 Z" style="fill: var(--turchese)"/>
+          <path d="M125 9 L155 9 L140 43 Z" style="fill: var(--rosa)"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="56" fill="url(#bandierine)"/>
+    </svg>
+
+    <div class="coriandoli"></div>
+
+    <svg class="palloncino sx1" viewBox="0 0 60 150" focusable="false" style="color: var(--corallo)"><use href="#palloncino"/></svg>
+    <svg class="palloncino sx2" viewBox="0 0 60 150" focusable="false" style="color: var(--turchese)"><use href="#palloncino"/></svg>
+    <svg class="palloncino sx3" viewBox="0 0 60 150" focusable="false" style="color: var(--giallo)"><use href="#palloncino"/></svg>
+    <svg class="palloncino dx1" viewBox="0 0 60 150" focusable="false" style="color: var(--rosa)"><use href="#palloncino"/></svg>
+    <svg class="palloncino dx2" viewBox="0 0 60 150" focusable="false" style="color: var(--viola)"><use href="#palloncino"/></svg>
+    <svg class="palloncino dx3" viewBox="0 0 60 150" focusable="false" style="color: var(--corallo)"><use href="#palloncino"/></svg>
+  </div>
+
   <main class="invito" id="invito">
     <noscript><p>Per vedere l'Invito serve JavaScript attivo.</p></noscript>
   </main>
