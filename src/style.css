@@ -30,7 +30,9 @@
  * Struttura: la cornice di festa (festone, palloncini, coriandoli fissi) è markup
  * statico in index.html, dentro <div class="festa">, FUORI da <main id="invito">
  * che src/main.js ridisegna: il tick e i cambi di vista non la toccano. Usa solo
- * gli accenti già in :root (nessun colore nuovo) e sta sempre dietro la scheda.
+ * i colori già in :root (nessun colore nuovo): le sfumature traslucide (aloni di
+ * sfondo, ombre, spia) sono color-mix() di quelle variabili con "transparent".
+ * Sta sempre dietro la scheda.
  */
 
 * {
@@ -91,8 +93,8 @@ body {
   overflow-wrap: anywhere;
   /* due aloni caldi, appena accennati */
   background:
-    radial-gradient(ellipse at 15% 0%, rgba(255, 201, 60, 0.28) 0%, transparent 55%),
-    radial-gradient(ellipse at 90% 100%, rgba(255, 126, 182, 0.2) 0%, transparent 55%);
+    radial-gradient(ellipse at 15% 0%, color-mix(in srgb, var(--giallo) 28%, transparent) 0%, transparent 55%),
+    radial-gradient(ellipse at 90% 100%, color-mix(in srgb, var(--rosa) 20%, transparent) 0%, transparent 55%);
   background-color: var(--sfondo);
 }
 
@@ -175,6 +177,7 @@ body {
   border-radius: 50%;
 }
 
+/* Colori: .c0–.c4 sono assegnati da scoppio() in src/main.js (CLASSI_COLORE = 5): tienili allineati */
 .pezzo.c0 { background: var(--corallo); }
 .pezzo.c1 { background: var(--giallo); }
 .pezzo.c2 { background: var(--turchese); }
@@ -190,13 +193,22 @@ body {
   transform-origin: 50% 100%; /* ondeggia come appeso al filo */
 }
 
-/* Telefono: i palloncini sbucano ai bordi, dietro la scheda */
+/* Telefono: quattro palloncini sbucano ai bordi, dietro la scheda; la fascia ai lati è stretta
+   (il margine della pagina), quindi gli altri due salgono dal margine in basso, che sul telefono
+   è più alto (padding-bottom di body) proprio per far loro posto. */
 .sx1 { left: -1.2rem; top: 6%; --w: 3.6rem; }
 .sx2 { left: -1.5rem; top: 38%; --w: 3.2rem; }
-.sx3 { left: -1rem; top: 66%; --w: 3.8rem; }
 .dx1 { right: -1.4rem; top: 20%; --w: 3.4rem; }
 .dx2 { right: -1.1rem; top: 50%; --w: 3.8rem; }
-.dx3 { right: -1.5rem; top: 76%; --w: 3.2rem; }
+
+@media (max-width: 45.99rem) {
+  body {
+    padding-bottom: 4.5rem;
+  }
+  /* bottom negativo: spuntano testa e nodo (circa 1.55 volte la larghezza), il filo resta fuori schermo */
+  .sx3 { left: 14%; bottom: calc(var(--w) * -0.95); --w: 3.4rem; }
+  .dx3 { right: 16%; bottom: calc(var(--w) * -0.95); --w: 3.2rem; }
+}
 
 /* Schermi larghi: colonna centrale e palloncini nelle due fasce laterali */
 @media (min-width: 46rem) {
@@ -224,7 +236,7 @@ body {
   background: var(--carta);
   border: 2px solid var(--linea-morbida);
   border-radius: 1.25rem;
-  box-shadow: 0 0.6rem 1.8rem rgba(28, 35, 82, 0.12);
+  box-shadow: 0 0.6rem 1.8rem color-mix(in srgb, var(--testo) 12%, transparent);
 }
 
 /* Fascia colorata in cima alla scheda */
@@ -269,7 +281,7 @@ body {
   height: 0.6rem;
   border-radius: 50%;
   background: var(--turchese);
-  box-shadow: 0 0 0 3px rgba(46, 196, 182, 0.28);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--turchese) 28%, transparent);
 }
 
 .timbro {
@@ -301,6 +313,16 @@ p {
 
 .invito > p {
   margin-bottom: 0.75rem;
+}
+
+/* Sotto-riga del titolo ("per festeggiare il mio compleanno"): più piccola, tenue (7.3:1 su scheda) */
+.invito > .sottotitolo {
+  margin: -0.25rem 0 1rem;
+  font-family: var(--titoli);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--tenue);
 }
 
 .invito > .didascalia {
@@ -489,7 +511,7 @@ p {
   background: var(--bottone);
   border: 0;
   border-radius: 999px;
-  box-shadow: 0 0.2rem 0 rgba(28, 35, 82, 0.28);
+  box-shadow: 0 0.2rem 0 color-mix(in srgb, var(--testo) 28%, transparent);
   cursor: pointer;
 }
 
@@ -563,7 +585,7 @@ button:focus-visible {
   .invito > :nth-child(n + 5) { animation-delay: 0.24s; }
 
   .pezzo {
-    animation: scoppia var(--durata, 1.6s) cubic-bezier(0.15, 0.7, 0.35, 1) both;
+    animation: scoppia var(--durata-pezzo, 1.6s) cubic-bezier(0.15, 0.7, 0.35, 1) both;
   }
 
   .spia {
