@@ -252,8 +252,8 @@ const INVITATI_REALI = [
   ['Martina', 'Io me magno tutto, pure il parmigiano, basta che non lo so'],
   ['Malvina', 'Ripetiamo insieme: senza lattosio non vuol dire senza caseina'],
   ['Lorenzo', "Ce l'abbiamo il vino, si?"],
-  ['Graziana', 'Ma davvero dobbiamo mangiare senza carne'],
-  ['Alfredo', 'Ma nella soppressata la possono mangiare tutti? e il caciocavallo?'],
+  ['Graziana', 'Già senza glutine è difficile, ma pure senza caseina che dobbiamo mangiare?'],
+  ['Alfredo', 'Ma la soppressata la possono mangiare tutti? e il caciocavallo?'],
 ];
 const APERTURA_REALE = Date.parse('2026-10-26T20:00:00+01:00');
 const SBLOCCO_REALE = Date.parse('2026-10-30T20:00:00+01:00');
