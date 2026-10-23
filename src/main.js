@@ -100,18 +100,25 @@ function voceDelMenu({ nome, nota }) {
   return voce;
 }
 
-/** Una Sezione del Menù sbloccato: titolo, sottotitolo e la lista puntata delle sue Voci (nome e Nota). */
+/**
+ * Una Sezione del Menù sbloccato: una tessera (<li> dell'elenco ordinato) con titolo, sottotitolo e
+ * l'elenco delle sue Voci. Numero e colore vengono dalla posizione, via CSS (src/style.css).
+ */
 function sezioneDelMenu({ titolo, sottotitolo, voci }) {
-  const gruppo = crea('div', undefined, 'menu-sezione');
-  const elenco = crea('ul');
+  const tessera = crea('li', undefined, 'menu-sezione');
+  const corpo = crea('div', undefined, 'menu-corpo');
+  const elenco = crea('ul', undefined, 'menu-voci');
+  elenco.setAttribute('role', 'list');
   elenco.append(...voci.map(voceDelMenu));
-  gruppo.append(crea('h3', titolo), crea('p', sottotitolo, 'menu-sottotitolo'), elenco);
-  return gruppo;
+  corpo.append(crea('h3', titolo), crea('p', sottotitolo, 'menu-sottotitolo'), elenco);
+  tessera.append(corpo);
+  return tessera;
 }
 
 /**
  * La sezione Menù: finché è bloccata mostra solo il teaser con il countdown allo
- * sblocco; dall'istante di sblocco mostra tutte le sezioni (titolo, sottotitolo e voci con nota). Si aggiorna sul posto
+ * sblocco; dall'istante di sblocco mostra "Si mangia così" e tutte le sezioni (titolo, sottotitolo e voci con nota)
+ * come tessere numerate. Si aggiorna sul posto
  * (`aggiornaMenu`), quindi passa da teaser a contenuto senza ridisegnare la pagina.
  */
 function sezioneMenu() {
@@ -122,11 +129,14 @@ function sezioneMenu() {
   aggiornaMenu = ({ menu }) => {
     if (menu.sbloccato !== sbloccatoMostrato) {
       sbloccatoMostrato = menu.sbloccato;
-      const titolo = crea('h2', 'Menù');
       if (menu.sbloccato) {
         aggiornaTempo = () => {};
-        sezione.replaceChildren(titolo, ...menu.sezioni.map(sezioneDelMenu));
+        const elenco = crea('ol', undefined, 'menu-sezioni');
+        elenco.setAttribute('role', 'list'); // con list-style: none Safari toglie la semantica di elenco
+        elenco.append(...menu.sezioni.map(sezioneDelMenu));
+        sezione.replaceChildren(crea('h2', 'Si mangia così', 'menu-titolo'), elenco);
       } else {
+        const titolo = crea('h2', 'Menù');
         const { elemento, aggiorna } = creaTempoMancante('Tempo che manca allo sblocco del Menù');
         aggiornaTempo = aggiorna;
         sezione.replaceChildren(titolo, crea('p', 'Il Menù è ancora un segreto. Si sblocca tra:'), elemento);
