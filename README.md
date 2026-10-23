@@ -51,7 +51,7 @@ contenuto: [
 
 Tutti i campi (`titolo`, `sottotitolo`, almeno una voce, e per ogni voce `nome` e `nota`) sono **obbligatori e non vuoti**. Il vecchio formato, con le voci scritte come semplici stringhe (`voci: ['Focaccia bianca']`), non è più valido. Se manca qualcosa l'Invito non parte e mostra un errore chiaro in italiano che nomina la Sezione o la Voce incompleta.
 
-Dallo **Sblocco** l'Invitato dentro vede tutte le Sezioni insieme, nell'ordine in cui le scrivi: ogni Sezione mostra titolo e sottotitolo, e ogni Voce il nome seguito dalla Nota. Prima dello Sblocco vede solo il teaser con il tempo mancante: né titoli, né sottotitoli, né nomi, né note arrivano alla pagina. Tutto il testo è mostrato com'è scritto (nessun HTML è interpretato).
+Dallo **Sblocco** il Menù si intitola "Si mangia così" e l'Invitato dentro vede tutte le Sezioni insieme, nell'ordine in cui le scrivi, come tessere numerate dai colori che si alternano: il numero e il colore vengono dalla posizione della Sezione, non dalla configurazione. Ogni Sezione mostra titolo e sottotitolo, e ogni Voce il nome seguito dalla Nota. Prima dello Sblocco vede solo il teaser con il tempo mancante: né titoli, né sottotitoli, né nomi, né note arrivano alla pagina. Tutto il testo è mostrato com'è scritto (nessun HTML è interpretato).
 
 Non scrivere mai l'indirizzo di casa: il repository è pubblico e l'Invito non lo mostra, né deve mostrarlo. Se vuoi dirlo agli amici, fallo in chat.
 
