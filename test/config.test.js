@@ -4,8 +4,6 @@ import assert from 'node:assert/strict';
 import { config } from '../src/config.js';
 
 const ISO_CON_OFFSET_ROMA = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?\+0[12]:00$/;
-const DUE_SETTIMANE_MS = 14 * 24 * 3600 * 1000;
-const UNA_SETTIMANA_MS = 7 * 24 * 3600 * 1000;
 
 function istante(iso) {
   const ms = Date.parse(iso);
@@ -18,14 +16,9 @@ test('la data della cena è un solo campo con offset Europe/Rome', () => {
   istante(config.cena);
 });
 
-test("l'Invito si apre due settimane prima della cena", () => {
-  assert.match(config.apertura, ISO_CON_OFFSET_ROMA);
-  assert.equal(istante(config.cena) - istante(config.apertura), DUE_SETTIMANE_MS);
-});
-
-test('il Menù si sblocca una settimana prima della cena', () => {
-  assert.match(config.menu.sblocco, ISO_CON_OFFSET_ROMA);
-  assert.equal(istante(config.cena) - istante(config.menu.sblocco), UNA_SETTIMANA_MS);
+test("l'Apertura e lo Sblocco del Menù sono giorni prima della cena, interi, e non date assolute", () => {
+  assert.deepEqual(config.apertura, { giorniPrima: 7 });
+  assert.deepEqual(config.menu.sblocco, { giorniPrima: 3 });
 });
 
 /** Offset reale di Europe/Rome (es. "+01:00") nell'istante dato, calcolato da Intl. */
@@ -49,16 +42,9 @@ function offsetRoma(ms) {
   return `${segno}${ore}:${min}`;
 }
 
-test("ogni istante in config ha l'offset Europe/Rome corretto per quella data", () => {
-  const istanti = {
-    cena: config.cena,
-    apertura: config.apertura,
-    'menu.sblocco': config.menu.sblocco,
-  };
-  for (const [nome, iso] of Object.entries(istanti)) {
-    const scritto = iso.slice(-6);
-    assert.equal(scritto, offsetRoma(istante(iso)), `${nome}: offset ${scritto} sbagliato per ${iso}`);
-  }
+test("la cena in config ha l'offset Europe/Rome corretto per quella data", () => {
+  const scritto = config.cena.slice(-6);
+  assert.equal(scritto, offsetRoma(istante(config.cena)), `cena: offset ${scritto} sbagliato per ${config.cena}`);
 });
 
 test('ogni Invitato ha un nome e un Messaggio personalizzato', () => {
