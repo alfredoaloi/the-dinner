@@ -190,15 +190,6 @@ function rigaDiStato(testoTimbro, riconosciuto = false) {
   return riga;
 }
 
-/** Nota discreta, visibile finché i contenuti in src/config.js sono ancora segnaposto. */
-function notaSegnaposto() {
-  return crea(
-    'p',
-    "Contenuti segnaposto: date, nomi e testi sono di prova e l'organizzatore deve ancora sostituirli.",
-    'nota-segnaposto',
-  );
-}
-
 function disegnaVista(vista) {
   const titolo = crea('h1', 'Un invito a cena');
   const contenuto = [titolo, crea('p', 'per festeggiare il mio compleanno', 'sottotitolo')];
@@ -236,7 +227,6 @@ function disegnaVista(vista) {
       break;
     }
   }
-  if (config.segnaposto) contenuto.push(notaSegnaposto());
 
   radice.replaceChildren(riga, ...contenuto);
   return campoDaFocalizzare;

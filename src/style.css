@@ -540,16 +540,6 @@ button:focus-visible {
   cursor: pointer;
 }
 
-/* Nota discreta sui contenuti segnaposto (visibile finché config.segnaposto è true) */
-.invito > .nota-segnaposto {
-  margin: 1.5rem 0 0;
-  padding-top: 0.75rem;
-  border-top: 2px dotted var(--linea-morbida);
-  font-size: 0.75rem;
-  letter-spacing: 0.02em;
-  color: var(--tenue);
-}
-
 /* Piccoli movimenti, solo per chi non ha chiesto di ridurli */
 @media (prefers-reduced-motion: no-preference) {
   .palloncino {

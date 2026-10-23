@@ -60,18 +60,33 @@ test('il messaggio di rifiuto è fisso e il messaggio finale è "Si mangia!"', (
   assert.equal(config.messaggioFinale, 'Si mangia!');
 });
 
-test('i testi hanno il marcatore SEGNAPOSTO se e solo se config.segnaposto è true', () => {
-  const testi = [
-    ...config.invitati.map((i) => i.messaggio),
-    ...config.menu.contenuto.flatMap((sezione) => sezione.voci),
-  ];
-  for (const testo of testi) {
-    assert.equal(
-      testo.includes('SEGNAPOSTO'),
-      config.segnaposto === true,
-      config.segnaposto
-        ? `testo senza marcatore SEGNAPOSTO: "${testo}"`
-        : `marcatore SEGNAPOSTO rimasto con segnaposto: false: "${testo}"`,
-    );
+/** Tutte le stringhe della configurazione, a qualunque profondità, con chiavi e valori. */
+function tutteLeStringhe(valore, fuori = []) {
+  if (typeof valore === 'string') fuori.push(valore);
+  else if (valore && typeof valore === 'object') {
+    for (const [chiave, v] of Object.entries(valore)) {
+      fuori.push(chiave);
+      tutteLeStringhe(v, fuori);
+    }
+  }
+  return fuori;
+}
+
+test('nessun testo né chiave della configurazione contiene SEGNAPOSTO, e il flag segnaposto non esiste', () => {
+  for (const testo of tutteLeStringhe(config)) {
+    assert.ok(!/segnaposto/i.test(testo), `segnaposto rimasto: "${testo}"`);
+  }
+  assert.equal('segnaposto' in config, false);
+});
+
+test('non esistono più le Curiosità in configurazione', () => {
+  assert.equal('curiosita' in config, false);
+});
+
+test('ogni sezione del Menù reale ha un titolo e voci non vuote', () => {
+  assert.ok(config.menu.contenuto.length > 0);
+  for (const { titolo, voci } of config.menu.contenuto) {
+    assert.ok(titolo.trim().length > 0);
+    assert.ok(voci.length > 0 && voci.every((v) => v.trim().length > 0));
   }
 });

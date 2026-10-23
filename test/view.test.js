@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { computeView } from '../src/view.js';
 import { config as configReale } from '../src/config.js';
 
-// Configurazione di prova, indipendente dai contenuti segnaposto reali.
+// Configurazione di prova, indipendente dai contenuti reali dell'Invito.
 const config = {
   cena: '2030-06-15T20:00:00+02:00',
   apertura: { giorniPrima: 7 },
@@ -105,15 +105,6 @@ test('il countdown alla cena a cavallo del cambio ora legale usa gli offset dell
   const ora = Date.parse('2030-03-31T01:00:00+01:00');
   const view = computeView(cambio, ora, 'Mario Rossi');
   assert.deepEqual(view.cena.manca, { giorni: 0, ore: 18, minuti: 0, secondi: 0 });
-});
-
-test("la configurazione dell'Invito che andrà online è valida e fa entrare ogni suo Invitato", () => {
-  const dopoApertura = Date.parse(configReale.cena) - 7 * 86400_000 + 1000;
-  for (const invitato of configReale.invitati) {
-    const view = computeView(configReale, dopoApertura, invitato.nome);
-    assert.equal(view.kind, 'dentro', invitato.nome);
-    assert.equal(view.messaggio, invitato.messaggio);
-  }
 });
 
 test('due Invitati con lo stesso nome normalizzato fanno fallire la configurazione con un errore chiaro', () => {
@@ -256,18 +247,91 @@ test("il Menù compare solo dentro l'Invito", () => {
   }
 });
 
-test('con i dati di prova l\'Apertura è 7 giorni prima della cena e lo Sblocco 3 giorni prima', () => {
-  const cena = Date.parse(configReale.cena);
-  // Date di prova: la cena è alle 20:00 +01:00, nessun cambio d'ora in mezzo.
-  assert.equal(configReale.apertura.giorniPrima, 7);
-  assert.equal(configReale.menu.sblocco.giorniPrima, 3);
-  assert.equal(computeView(configReale, cena - 7 * 86400_000 - 1000, undefined).kind, 'chiuso');
-  assert.equal(computeView(configReale, cena - 7 * 86400_000, undefined).kind, 'ingresso');
-  const nome = configReale.invitati[0].nome;
-  assert.equal(computeView(configReale, cena - 3 * 86400_000 - 1000, nome).menu.sbloccato, false);
-  assert.equal(computeView(configReale, cena - 3 * 86400_000, nome).menu.sbloccato, true);
-  const sbloccato = computeView(configReale, cena - 3 * 86400_000, nome).menu;
-  assert.ok(sbloccato.sezioni.length > 0);
+// ---- Configurazione reale: istanti attesi scritti a mano, non derivati dal codice ----
+
+const INVITATI_REALI = [
+  ['Mauro', 'Ao so proprio contento de sta qui, ma il gatto lo possiamo portare?'],
+  ['Martina', 'Io me magno tutto, pure il parmigiano, basta che non lo so'],
+  ['Malvina', 'Ripetiamo insieme: senza lattosio non vuol dire senza caseina'],
+  ['Lorenzo', "Ce l'abbiamo il vino, si?"],
+  ['Graziana', 'Ma davvero dobbiamo mangiare senza carne'],
+  ['Alfredo', 'Ma nella soppressata la possono mangiare tutti? e il caciocavallo?'],
+];
+const APERTURA_REALE = Date.parse('2026-10-26T20:00:00+01:00');
+const SBLOCCO_REALE = Date.parse('2026-10-30T20:00:00+01:00');
+const CENA_REALE = Date.parse('2026-11-02T20:00:00+01:00');
+
+test('la cena reale è lunedì 2 novembre 2026 alle 20:00 a Roma', () => {
+  assert.equal(configReale.cena, '2026-11-02T20:00:00+01:00');
+});
+
+test('i sei Invitati reali entrano con il loro Messaggio personalizzato identico, e sono solo loro', () => {
+  assert.deepEqual(
+    configReale.invitati.map((i) => [i.nome, i.messaggio]),
+    INVITATI_REALI,
+  );
+  for (const [nome, messaggio] of INVITATI_REALI) {
+    for (const scritto of [nome, nome.toUpperCase(), `  ${nome.toLowerCase()}  `]) {
+      const view = computeView(configReale, APERTURA_REALE, scritto);
+      assert.equal(view.kind, 'dentro', scritto);
+      assert.equal(view.messaggio, messaggio);
+    }
+  }
+});
+
+test("i nomi accentati a sproposito entrano; i vecchi nomi di prova non entrano più", () => {
+  assert.equal(computeView(configReale, APERTURA_REALE, 'MÀURO').kind, 'dentro');
+  for (const nome of ['Mario Rossi', 'Giulia Bianchi']) {
+    const view = computeView(configReale, APERTURA_REALE, nome);
+    assert.equal(view.kind, 'rifiutato', nome);
+    assert.equal(view.messaggio, configReale.messaggioRifiuto);
+  }
+});
+
+test("l'Invito reale è chiuso fino a lunedì 26/10 alle 20:00 e aperto da lì", () => {
+  assert.equal(computeView(configReale, APERTURA_REALE - 1000, undefined).kind, 'chiuso');
+  assert.equal(computeView(configReale, APERTURA_REALE - 1000, 'Mauro').kind, 'chiuso');
+  assert.equal(computeView(configReale, APERTURA_REALE, undefined).kind, 'ingresso');
+});
+
+test('il Menù reale è teaser fino a venerdì 30/10 alle 20:00 e sbloccato da lì', () => {
+  const prima = computeView(configReale, SBLOCCO_REALE - 1000, 'Mauro').menu;
+  assert.equal(prima.sbloccato, false);
+  assert.equal('sezioni' in prima, false);
+  for (const ora of [SBLOCCO_REALE, CENA_REALE, CENA_REALE + 86400_000]) {
+    assert.equal(computeView(configReale, ora, 'Mauro').menu.sbloccato, true);
+  }
+});
+
+test("il Menù reale sbloccato mostra tutte le sezioni e le voci concordate, nell'ordine", () => {
+  const { menu } = computeView(configReale, SBLOCCO_REALE, 'Mauro');
+  assert.deepEqual(menu.sezioni, [
+    { titolo: 'Aperitivo', voci: ['Patatine', 'Taralli'] },
+    {
+      titolo: 'Antipasti',
+      voci: [
+        'Focaccia bianca',
+        'Soppressata',
+        'Caciocavallo',
+        'Melanzane e zucchine grigliate e condite con menta',
+        'Polenta nel forno con maionese',
+        'Polpette di verdure con maionese',
+        'Bicchierini di riso Venere con verdurine e gamberetti',
+      ],
+    },
+    {
+      titolo: 'Secondo',
+      voci: ['Spiedini di calamari gratinati al forno con contorno di polpette di patate'],
+    },
+    { titolo: 'Dolce', voci: ['Crostata di mele cotogne'] },
+    { titolo: 'Bevande', voci: ['Vino bianco', 'Prosecco (con il dolce)'] },
+  ]);
+});
+
+test('dalla cena reale in poi c\'è solo "Si mangia!"', () => {
+  const { cena } = computeView(configReale, CENA_REALE, 'Mauro');
+  assert.equal(cena.siMangia, true);
+  assert.equal(cena.messaggio, 'Si mangia!');
 });
 
 test("Apertura e Sblocco si spostano insieme alla cena", () => {

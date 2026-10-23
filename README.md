@@ -25,7 +25,7 @@ Tutti i contenuti stanno in **un solo file**: [`src/config.js`](src/config.js). 
 - `menu`: `contenuto` (le sezioni del Menù, vedi sotto) e `sblocco`, scritto come `{ giorniPrima: 3 }`: 3 giorni prima della cena, alla stessa ora della cena, come l'Apertura.
 - `messaggioRifiuto` e `messaggioFinale` ("Si mangia!").
 
-I contenuti d'esempio sono **segnaposto** e sono marcati come tali: nel file iniziano con `SEGNAPOSTO:` e, finché `segnaposto: true`, l'Invito mostra in fondo a ogni schermata una nota discreta che lo dice. Sostituiscili e poi metti `segnaposto: false`. I test controllano che `apertura` e `sblocco` siano i giorni-prima previsti, che l'offset `+01:00`/`+02:00` della cena sia quello giusto per quel giorno e che i marcatori `SEGNAPOSTO:` spariscano quando metti `segnaposto: false`.
+I test controllano che `apertura` e `sblocco` siano i giorni-prima previsti, che l'offset `+01:00`/`+02:00` della cena sia quello giusto per quel giorno e che la configurazione contenga i sei Invitati veri e il Menù completo. Dopo ogni modifica prova ogni fase con `?now=` (vedi sotto) ed esegui `npm test`.
 
 ### Il Menù a sezioni
 
@@ -39,18 +39,6 @@ contenuto: [
 ```
 
 Dallo **Sblocco** l'Invitato dentro vede tutte le sezioni insieme, nell'ordine in cui le scrivi: ogni sezione è un sottotitolo con le sue voci in un elenco puntato. Prima dello Sblocco vede solo il teaser con il tempo mancante: né titoli né voci arrivano alla pagina. Se una sezione non ha un titolo o non ha almeno una voce non vuota, l'Invito non parte e mostra un errore chiaro.
-
-## Da sostituire prima di condividere il link
-
-Tutto in [`src/config.js`](src/config.js). Spunta ogni voce:
-
-- [ ] **Data della cena** (`cena`): data e ora vere, con offset `+01:00` (ora solare) o `+02:00` (ora legale).
-- [ ] **Apertura** (`apertura`): `giorniPrima: 7`, già a posto: segue la cena.
-- [ ] **Invitati** (`invitati`): i nomi veri, uno principale per persona, senza alias. Due nomi uguali una volta normalizzati bloccano l'Invito.
-- [ ] **Messaggi personalizzati**: un `messaggio` vero per ogni Invitato.
-- [ ] **Menù** (`menu`): le sezioni vere in `contenuto` (ognuna con `titolo` e `voci`) e lo `sblocco` (`giorniPrima: 3`, già a posto: segue la cena).
-- [ ] **Segnaposto**: togli i `SEGNAPOSTO:` dai testi e metti `segnaposto: false` (così sparisce la nota in fondo alla pagina).
-- [ ] Prova ogni fase con `?now=` (vedi sotto), poi `npm test`.
 
 Non scrivere mai l'indirizzo di casa: il repository è pubblico e l'Invito non lo mostra, né deve mostrarlo. Se vuoi dirlo agli amici, fallo in chat.
 
@@ -90,7 +78,7 @@ Contrasti calcolati (WCAG 2.x), soglie 4.5:1 per il testo normale e 3:1 per test
 
 ## Provare le date: `?now=`
 
-Aggiungi `?now=<data ISO>` al link per simulare la data corrente, per esempio `?now=2026-12-05T20:00:00+01:00` per vedere l'apertura (con i dati di prova). Da quell'istante il tempo scorre a velocità reale. Sono accettate solo date o data-ora ISO 8601 (per esempio `2026-11-28` o `2026-11-28T20:00:00+01:00`); qualunque altro valore (`?now=1`, `?now=2026`, testo libero) viene ignorato e si usa l'ora reale.
+Aggiungi `?now=<data ISO>` al link per simulare la data corrente, per esempio `?now=2026-10-26T20:00:00+01:00` per vedere l'Apertura (il Menù si sblocca con `?now=2026-10-30T20:00:00+01:00`, la cena con `?now=2026-11-02T20:00:00+01:00`). Da quell'istante il tempo scorre a velocità reale. Sono accettate solo date o data-ora ISO 8601 (per esempio `2026-11-28` o `2026-11-28T20:00:00+01:00`); qualunque altro valore (`?now=1`, `?now=2026`, testo libero) viene ignorato e si usa l'ora reale.
 
 ## Sviluppo
 

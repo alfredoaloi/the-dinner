@@ -5,9 +5,6 @@
 // Messaggi personalizzati e Menù (a sezioni).
 // Non serve toccare nient'altro.
 //
-// ATTENZIONE: i contenuti qui sotto sono SEGNAPOSTO (campo `segnaposto: true`).
-// Sostituiscili con quelli veri, poi metti `segnaposto: false`.
-//
 // ATTENZIONE: il repository è pubblico, quindi anche questo file lo è.
 // Non scrivere qui l'indirizzo di casa né nulla che non vuoi far leggere.
 //
@@ -18,29 +15,42 @@
 // ============================================================================
 
 export const config = {
-  // SEGNAPOSTO: metti false quando hai sostituito tutti i contenuti.
-  segnaposto: true,
-
-  // SEGNAPOSTO: data e ora della cena. È l'UNICO campo da cambiare per la data.
-  cena: '2026-12-12T20:00:00+01:00',
+  // Data e ora della cena. È l'UNICO campo da cambiare per la data.
+  cena: '2026-11-02T20:00:00+01:00',
 
   // L'Invito è chiuso fino all'Apertura: 7 giorni prima della cena, alla stessa ora della cena.
   // Spostando la cena si sposta da solo (l'ora resta quella locale di Roma, anche col cambio d'ora).
   apertura: { giorniPrima: 7 },
 
-  // SEGNAPOSTO: Invitati. Un solo nome principale ciascuno, nessun alias.
+  // Invitati. Un solo nome principale ciascuno (il nome di battesimo), nessun alias.
   invitati: [
     {
-      nome: 'Mario Rossi',
-      messaggio: 'SEGNAPOSTO: Mario, porta fame e pazienza. Il resto lo mettiamo noi.',
+      nome: 'Mauro',
+      messaggio: 'Ao so proprio contento de sta qui, ma il gatto lo possiamo portare?',
     },
     {
-      nome: 'Giulia Bianchi',
-      messaggio: 'SEGNAPOSTO: Giulia, il tuo posto a tavola è già prenotato. Anche il bis.',
+      nome: 'Martina',
+      messaggio: 'Io me magno tutto, pure il parmigiano, basta che non lo so',
+    },
+    {
+      nome: 'Malvina',
+      messaggio: 'Ripetiamo insieme: senza lattosio non vuol dire senza caseina',
+    },
+    {
+      nome: 'Lorenzo',
+      messaggio: "Ce l'abbiamo il vino, si?",
+    },
+    {
+      nome: 'Graziana',
+      messaggio: 'Ma davvero dobbiamo mangiare senza carne',
+    },
+    {
+      nome: 'Alfredo',
+      messaggio: 'Ma nella soppressata la possono mangiare tutti? e il caciocavallo?',
     },
   ],
 
-  // SEGNAPOSTO: Menù. Lo Sblocco è 3 giorni prima della cena, alla stessa ora della cena;
+  // Menù. Lo Sblocco è 3 giorni prima della cena, alla stessa ora della cena;
   // anche questo si sposta da solo con la cena.
   //
   // `contenuto` è una lista ORDINATA di sezioni: l'Invito le mostra nello stesso ordine.
@@ -50,9 +60,25 @@ export const config = {
   // Prima dello sblocco nessun titolo e nessuna voce arriva alla pagina: c'è solo il teaser.
   menu: {
     contenuto: [
-      { titolo: 'Antipasti', voci: ['SEGNAPOSTO: antipasto misterioso', 'SEGNAPOSTO: stuzzichino segreto'] },
-      { titolo: 'Secondo', voci: ['SEGNAPOSTO: secondo a sorpresa'] },
-      { titolo: 'Dolce', voci: ['SEGNAPOSTO: dolce da definire'] },
+      { titolo: 'Aperitivo', voci: ['Patatine', 'Taralli'] },
+      {
+        titolo: 'Antipasti',
+        voci: [
+          'Focaccia bianca',
+          'Soppressata',
+          'Caciocavallo',
+          'Melanzane e zucchine grigliate e condite con menta',
+          'Polenta nel forno con maionese',
+          'Polpette di verdure con maionese',
+          'Bicchierini di riso Venere con verdurine e gamberetti',
+        ],
+      },
+      {
+        titolo: 'Secondo',
+        voci: ['Spiedini di calamari gratinati al forno con contorno di polpette di patate'],
+      },
+      { titolo: 'Dolce', voci: ['Crostata di mele cotogne'] },
+      { titolo: 'Bevande', voci: ['Vino bianco', 'Prosecco (con il dolce)'] },
     ],
     sblocco: { giorniPrima: 3 },
   },
