@@ -2,7 +2,8 @@
 // Nessun accesso a DOM, orologio o storage: tutto arriva dai parametri.
 //
 // computeView(config, now, nomeScritto) -> vista
-//   config      la configurazione dell'Invito (src/config.js)
+//   config      la configurazione dell'Invito (src/config.js). Apertura e Sblocco del Menù
+//               sono `giorniPrima` la cena, risolti qui alla stessa ora locale di Roma della cena
 //   now         l'istante corrente: millisecondi epoch o Date
 //   nomeScritto il nome scritto all'Ingresso (assente se non scritto)
 //
@@ -13,10 +14,7 @@
 //   { kind: 'dentro', messaggio, cena: { siMangia: false, manca: Tempo }
 //                                    | { siMangia: true, messaggio },
 //                     menu: { sbloccato: false, manca: Tempo }
-//                         | { sbloccato: true, contenuto },
-//                     curiosita: { sbloccate: [testo], prossima: Tempo | undefined } }
-//   curiosita.sbloccate  i testi delle Curiosità sbloccate, in ordine di data di sblocco
-//   curiosita.prossima   tempo mancante alla prossima ancora bloccata; assente se sono tutte sbloccate
+//                         | { sbloccato: true, sezioni: [{ titolo, voci: [testo] }] } }
 // dove Tempo = { giorni, ore, minuti, secondi }, mai negativo.
 
 /**
@@ -33,6 +31,37 @@ function tempoMancante(ms) {
   };
 }
 
+const FORMATO_ROMA = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'Europe/Rome',
+  hourCycle: 'h23',
+  year: 'numeric',
+  month: 'numeric',
+  day: 'numeric',
+  hour: 'numeric',
+  minute: 'numeric',
+  second: 'numeric',
+});
+
+/** Ora a muro di Europe/Rome in quell'istante, scritta come se fosse UTC (millisecondi epoch). */
+function muroRoma(istante) {
+  const v = Object.fromEntries(FORMATO_ROMA.formatToParts(new Date(istante)).map((p) => [p.type, Number(p.value)]));
+  return Date.UTC(v.year, v.month - 1, v.day, v.hour, v.minute, v.second) + (((istante % 1000) + 1000) % 1000);
+}
+
+/** Istante che a Roma ha quell'ora a muro (scritta come se fosse UTC). */
+function istanteDaMuroRoma(muro) {
+  const primo = muro - (muroRoma(muro) - muro);
+  return muro - (muroRoma(primo) - primo);
+}
+
+/**
+ * L'istante `giorni` giorni di calendario prima di `istante`, alla stessa ora locale di Roma.
+ * Non sono `giorni * 24` ore: attraversando un cambio di ora legale l'ora a muro resta quella.
+ */
+function giorniPrima(istante, giorni) {
+  return istanteDaMuroRoma(muroRoma(istante) - giorni * 86400_000);
+}
+
 /**
  * Forma normalizzata di un nome: senza spazi ai bordi, con gli spazi interni
  * ridotti a uno, senza maiuscole e senza accenti. Assente -> stringa vuota.
@@ -46,6 +75,11 @@ export function normalizzaNome(nome) {
     .trim();
 }
 
+/** L'istante che cade `giorni` giorni prima della cena, alla stessa ora locale di Roma. */
+function giorniPrimaDellaCena(config, giorni) {
+  return giorniPrima(Date.parse(config.cena), giorni);
+}
+
 /** Stato del countdown alla cena: tempo mancante, oppure "Si mangia!" dalla cena in poi. */
 function statoCena(config, adesso) {
   const cena = Date.parse(config.cena);
@@ -55,33 +89,48 @@ function statoCena(config, adesso) {
   return { siMangia: false, manca: tempoMancante(cena - adesso) };
 }
 
-/** Stato del Menù: solo il tempo mancante allo sblocco, poi (dall'istante di sblocco in poi) il contenuto. */
+/** Stato del Menù: solo il tempo mancante allo sblocco, poi (dall'istante di sblocco in poi) tutte le sezioni insieme. */
 function statoMenu(config, adesso) {
-  const sblocco = Date.parse(config.menu.sblocco);
+  const sblocco = giorniPrimaDellaCena(config, config.menu.sblocco.giorniPrima);
   if (adesso >= sblocco) {
-    return { sbloccato: true, contenuto: config.menu.contenuto };
+    return { sbloccato: true, sezioni: config.menu.contenuto };
   }
   return { sbloccato: false, manca: tempoMancante(sblocco - adesso) };
 }
 
-/**
- * Sezione Curiosità: i testi già sbloccati in ordine di data di sblocco, più il tempo
- * mancante alla prossima ancora bloccata (`prossima` è undefined quando sono tutte sbloccate).
- * Una Curiosità è sbloccata dall'istante di sblocco in poi.
- */
-function statoCuriosita(config, adesso) {
-  const ordinate = (config.curiosita ?? [])
-    .map((c) => ({ testo: c.testo, sblocco: Date.parse(c.sblocco) }))
-    .sort((a, b) => a.sblocco - b.sblocco);
-  const prossima = ordinate.find((c) => c.sblocco > adesso);
-  return {
-    sbloccate: ordinate.filter((c) => c.sblocco <= adesso).map((c) => c.testo),
-    prossima: prossima && tempoMancante(prossima.sblocco - adesso),
-  };
+const testoNonVuoto = (testo) => typeof testo === 'string' && testo.trim() !== '';
+
+/** Lancia un errore chiaro se il Menù non è una lista di sezioni, ognuna con titolo e almeno una voce non vuota. */
+function verificaMenu(menu) {
+  const sezioni = menu.contenuto;
+  if (!Array.isArray(sezioni) || sezioni.length === 0) {
+    throw new Error('Configurazione non valida: il Menù deve essere una lista di almeno una sezione, ognuna con titolo e voci.');
+  }
+  sezioni.forEach((sezione, posto) => {
+    if (!testoNonVuoto(sezione?.titolo)) {
+      throw new Error(`Configurazione non valida: la sezione ${posto + 1} del Menù non ha un titolo.`);
+    }
+    const voci = sezione.voci;
+    if (!Array.isArray(voci) || voci.length === 0 || !voci.every(testoNonVuoto)) {
+      throw new Error(
+        `Configurazione non valida: la sezione "${sezione.titolo}" del Menù deve avere almeno una voce, e nessuna voce vuota.`,
+      );
+    }
+  });
 }
 
-/** Lancia un errore chiaro se due Invitati hanno lo stesso nome normalizzato. */
+/** Lancia un errore chiaro se un anticipo sulla cena (Apertura o Sblocco) non è un numero intero di giorni. */
+function verificaGiorniPrima(nome, giorni) {
+  if (!Number.isInteger(giorni)) {
+    throw new Error(`Configurazione non valida: ${nome} deve avere \`giorniPrima\` come numero intero di giorni prima della cena.`);
+  }
+}
+
+/** Lancia un errore chiaro se la configurazione non è valida: Apertura o Sblocco senza giorniPrima intero, Menù non a sezioni o Invitati con lo stesso nome normalizzato. */
 function verificaConfigurazione(config) {
+  verificaGiorniPrima("l'Apertura", config.apertura?.giorniPrima);
+  verificaGiorniPrima('lo Sblocco del Menù', config.menu.sblocco?.giorniPrima);
+  verificaMenu(config.menu);
   const visti = new Map();
   for (const invitato of config.invitati) {
     const chiave = normalizzaNome(invitato.nome);
@@ -98,7 +147,7 @@ function verificaConfigurazione(config) {
 export function computeView(config, now, nomeScritto) {
   verificaConfigurazione(config);
   const adesso = Number(now);
-  const apertura = Date.parse(config.apertura);
+  const apertura = giorniPrimaDellaCena(config, config.apertura.giorniPrima);
 
   if (adesso < apertura) {
     return { kind: 'chiuso', mancaAllApertura: tempoMancante(apertura - adesso) };
@@ -116,6 +165,5 @@ export function computeView(config, now, nomeScritto) {
     messaggio: invitato.messaggio,
     cena: statoCena(config, adesso),
     menu: statoMenu(config, adesso),
-    curiosita: statoCuriosita(config, adesso),
   };
 }

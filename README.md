@@ -20,27 +20,25 @@ Il workflow (`.github/workflows/deploy.yml`) prima esegue i test; solo se passan
 Tutti i contenuti stanno in **un solo file**: [`src/config.js`](src/config.js). Non serve toccare altro.
 
 - `cena`: data e ora della cena, in un solo campo, con l'offset del fuso Europe/Rome (`+01:00` ora solare, `+02:00` ora legale).
-- `apertura`: da quando l'Invito è aperto. Deve essere 2 settimane prima della cena.
+- `apertura`: da quando l'Invito è aperto, scritta come `{ giorniPrima: 7 }`: 7 giorni prima della cena, alla stessa ora della cena (ora di Roma, anche attraversando un cambio di ora legale). Spostando la cena si sposta da sola.
 - `invitati`: per ogni **Invitato** un `nome` e un **Messaggio personalizzato**.
-- `curiosita`: per ogni **Curiosità** un `testo` e una data di `sblocco` esplicita.
-- `menu`: `contenuto` e `sblocco` (1 settimana prima della cena).
+- `menu`: `contenuto` (le sezioni del Menù, vedi sotto) e `sblocco`, scritto come `{ giorniPrima: 3 }`: 3 giorni prima della cena, alla stessa ora della cena, come l'Apertura.
 - `messaggioRifiuto` e `messaggioFinale` ("Si mangia!").
 
-I contenuti d'esempio sono **segnaposto** e sono marcati come tali: nel file iniziano con `SEGNAPOSTO:` e, finché `segnaposto: true`, l'Invito mostra in fondo a ogni schermata una nota discreta che lo dice. Sostituiscili e poi metti `segnaposto: false`. I test controllano che le date siano coerenti (apertura, Menù, Curiosità), che ogni offset `+01:00`/`+02:00` sia quello giusto per quel giorno e che i marcatori `SEGNAPOSTO:` spariscano quando metti `segnaposto: false`.
+I test controllano che `apertura` e `sblocco` siano i giorni-prima previsti, che l'offset `+01:00`/`+02:00` della cena sia quello giusto per quel giorno e che la configurazione contenga i sei Invitati veri e il Menù completo. Dopo ogni modifica prova ogni fase con `?now=` (vedi sotto) ed esegui `npm test`.
 
-## Da sostituire prima di condividere il link
+### Il Menù a sezioni
 
-Tutto in [`src/config.js`](src/config.js). Spunta ogni voce:
+`menu.contenuto` è una lista **ordinata** di sezioni (Aperitivo, Antipasti, Secondo, Dolce, Bevande...). Ogni sezione ha un `titolo` e una lista di `voci`:
 
-- [ ] **Data della cena** (`cena`): data e ora vere, con offset `+01:00` (ora solare) o `+02:00` (ora legale).
-- [ ] **Data di apertura** (`apertura`): esattamente 2 settimane prima della cena.
-- [ ] **Invitati** (`invitati`): i nomi veri, uno principale per persona, senza alias. Due nomi uguali una volta normalizzati bloccano l'Invito.
-- [ ] **Messaggi personalizzati**: un `messaggio` vero per ogni Invitato.
-- [ ] **Curiosità** (`curiosita`): i testi veri, ciascuno con la sua data di `sblocco` tra l'apertura e la cena.
-- [ ] **Menù** (`menu`): il `contenuto` vero e lo `sblocco`, esattamente 1 settimana prima della cena.
-- [ ] **Date di sblocco**: ricontrollale tutte dopo aver cambiato la cena (i test falliscono se non tornano).
-- [ ] **Segnaposto**: togli i `SEGNAPOSTO:` dai testi e metti `segnaposto: false` (così sparisce la nota in fondo alla pagina).
-- [ ] Prova ogni fase con `?now=` (vedi sotto), poi `npm test`.
+```js
+contenuto: [
+  { titolo: 'Antipasti', voci: ['Focaccia bianca', 'Soppressata'] },
+  { titolo: 'Dolce', voci: ['Crostata di mele cotogne'] },
+],
+```
+
+Dallo **Sblocco** l'Invitato dentro vede tutte le sezioni insieme, nell'ordine in cui le scrivi: ogni sezione è un sottotitolo con le sue voci in un elenco puntato. Prima dello Sblocco vede solo il teaser con il tempo mancante: né titoli né voci arrivano alla pagina. Se una sezione non ha un titolo o non ha almeno una voce non vuota, l'Invito non parte e mostra un errore chiaro.
 
 Non scrivere mai l'indirizzo di casa: il repository è pubblico e l'Invito non lo mostra, né deve mostrarlo. Se vuoi dirlo agli amici, fallo in chat.
 
@@ -60,7 +58,7 @@ Due **Invitati** il cui nome è uguale una volta normalizzato (maiuscole, spazi 
 L'Invito è chiaro e festoso e ha **solo il tema chiaro**: nessuna variante scura, nemmeno se il dispositivo è in modo scuro (`color-scheme` e `theme-color` in `index.html` sono chiaro/crema). Le variabili colore stanno nel blocco `:root` di [`src/style.css`](src/style.css).
 
 - Sfondo crema (`#fff4e0`), scheda bianca con bordo morbido, testo blu notte (`#1c2352`, mai nero), pulsanti corallo con testo blu notte.
-- Accenti vivaci: corallo, giallo sole, turchese, rosa, viola. Corallo, giallo, turchese e rosa sono solo decorazione o sfondo di tessere (con testo blu notte), perché su bianco non bastano come testo (2.8, 1.5, 2.2 e 2.4:1). Per il testo normale si usano il viola e le varianti scure (`--corallo-scuro`, `--turchese-scuro`, `--rosa-scuro`).
+- Accenti vivaci: corallo, giallo sole, turchese, rosa, viola. Corallo, giallo, turchese e rosa sono solo decorazione o sfondo di tessere (con testo blu notte), perché su bianco non bastano come testo (2.8, 1.5, 2.2 e 2.4:1). Per il testo normale si usano il viola e le varianti scure (`--corallo-scuro`, `--turchese-scuro`).
 - Font di sistema, nessuna risorsa esterna: stack arrotondato per i titoli, stack di sistema per il testo.
 
 Contrasti calcolati (WCAG 2.x), soglie 4.5:1 per il testo normale e 3:1 per testo grande, bordi dei campi e anello del focus:
@@ -80,7 +78,7 @@ Contrasti calcolati (WCAG 2.x), soglie 4.5:1 per il testo normale e 3:1 per test
 
 ## Provare le date: `?now=`
 
-Aggiungi `?now=<data ISO>` al link per simulare la data corrente, per esempio `?now=2026-11-28T20:00:00+01:00` per vedere l'apertura. Da quell'istante il tempo scorre a velocità reale. Sono accettate solo date o data-ora ISO 8601 (per esempio `2026-11-28` o `2026-11-28T20:00:00+01:00`); qualunque altro valore (`?now=1`, `?now=2026`, testo libero) viene ignorato e si usa l'ora reale.
+Aggiungi `?now=<data ISO>` al link per simulare la data corrente, per esempio `?now=2026-10-26T20:00:00+01:00` per vedere l'Apertura (il Menù si sblocca con `?now=2026-10-30T20:00:00+01:00`, la cena con `?now=2026-11-02T20:00:00+01:00`). Da quell'istante il tempo scorre a velocità reale. Sono accettate solo date o data-ora ISO 8601 (per esempio `2026-11-28` o `2026-11-28T20:00:00+01:00`); qualunque altro valore (`?now=1`, `?now=2026`, testo libero) viene ignorato e si usa l'ora reale.
 
 ## Sviluppo
 

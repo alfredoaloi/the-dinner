@@ -31,7 +31,6 @@ let scoppioFatto = false; // lo scoppio di coriandoli parte al massimo una volta
 let chiaveDisegnata;
 let aggiornaCountdown = () => {};
 let aggiornaMenu = () => {};
-let aggiornaCuriosita = () => {};
 
 function crea(tag, testo, classe) {
   const el = document.createElement(tag);
@@ -94,9 +93,18 @@ function countdown(etichetta, leggi) {
   return elemento;
 }
 
+/** Una sezione del Menù sbloccato: sottotitolo con la lista puntata delle sue voci. */
+function sezioneDelMenu({ titolo, voci }) {
+  const gruppo = crea('div', undefined, 'menu-sezione');
+  const elenco = crea('ul');
+  elenco.append(...voci.map((voce) => crea('li', voce)));
+  gruppo.append(crea('h3', titolo), elenco);
+  return gruppo;
+}
+
 /**
  * La sezione Menù: finché è bloccata mostra solo il teaser con il countdown allo
- * sblocco; dall'istante di sblocco mostra il contenuto. Si aggiorna sul posto
+ * sblocco; dall'istante di sblocco mostra tutte le sezioni (sottotitolo e lista puntata). Si aggiorna sul posto
  * (`aggiornaMenu`), quindi passa da teaser a contenuto senza ridisegnare la pagina.
  */
 function sezioneMenu() {
@@ -110,7 +118,7 @@ function sezioneMenu() {
       const titolo = crea('h2', 'Menù');
       if (menu.sbloccato) {
         aggiornaTempo = () => {};
-        sezione.replaceChildren(titolo, crea('p', menu.contenuto));
+        sezione.replaceChildren(titolo, ...menu.sezioni.map(sezioneDelMenu));
       } else {
         const { elemento, aggiorna } = creaTempoMancante('Tempo che manca allo sblocco del Menù');
         aggiornaTempo = aggiorna;
@@ -170,33 +178,6 @@ function nonSeiTu() {
   return bottone;
 }
 
-/**
- * La sezione Curiosità: quelle sbloccate in ordine di data, poi (se ne restano) il teaser
- * con il tempo mancante alla prossima. Si aggiorna sul posto con `aggiornaCuriosita(vista)`:
- * la lista si ridisegna solo quando se ne sblocca una nuova.
- */
-function sezioneCuriosita() {
-  const sezione = crea('section', undefined, 'curiosita');
-  const lista = crea('ul', undefined, 'lista-curiosita');
-  const teaser = crea('div', undefined, 'teaser-curiosita');
-  const { elemento: tempo, aggiorna: aggiornaTempo } = creaTempoMancante('Tempo che manca alla prossima Curiosità');
-  teaser.append(crea('p', 'La prossima Curiosità si sblocca tra:'), tempo);
-  sezione.append(crea('h2', 'Curiosità'), lista, teaser);
-
-  let mostrate = -1;
-  aggiornaCuriosita = ({ curiosita: { sbloccate, prossima } }) => {
-    if (sbloccate.length !== mostrate) {
-      mostrate = sbloccate.length;
-      lista.replaceChildren(...sbloccate.map((testo) => crea('li', testo)));
-    }
-    lista.hidden = sbloccate.length === 0;
-    teaser.hidden = prossima === undefined;
-    if (prossima) aggiornaTempo(prossima);
-    sezione.hidden = sbloccate.length === 0 && prossima === undefined; // nessuna Curiosità in configurazione
-  };
-  return sezione;
-}
-
 /** La riga di stato in alto: spia, etichetta "Lista invitati" e un timbro che dice a che punto siamo. */
 function rigaDiStato(testoTimbro, riconosciuto = false) {
   const spia = crea('span', undefined, 'spia');
@@ -207,15 +188,6 @@ function rigaDiStato(testoTimbro, riconosciuto = false) {
   const riga = crea('div', undefined, 'stato');
   riga.append(etichetta, timbro);
   return riga;
-}
-
-/** Nota discreta, visibile finché i contenuti in src/config.js sono ancora segnaposto. */
-function notaSegnaposto() {
-  return crea(
-    'p',
-    "Contenuti segnaposto: date, nomi e testi sono di prova e l'organizzatore deve ancora sostituirli.",
-    'nota-segnaposto',
-  );
 }
 
 function disegnaVista(vista) {
@@ -251,11 +223,10 @@ function disegnaVista(vista) {
         aggiornaTempoCena(v);
         didascalia.hidden = v.cena.siMangia; // "Si mangia!" non ha bisogno di didascalia
       };
-      contenuto.push(crea('p', vista.messaggio, 'messaggio'), didascalia, conto, sezioneMenu(), sezioneCuriosita(), nonSeiTu());
+      contenuto.push(crea('p', vista.messaggio, 'messaggio'), didascalia, conto, sezioneMenu(), nonSeiTu());
       break;
     }
   }
-  if (config.segnaposto) contenuto.push(notaSegnaposto());
 
   radice.replaceChildren(riga, ...contenuto);
   return campoDaFocalizzare;
@@ -284,14 +255,12 @@ function disegna(dopoTentativo = false) {
     chiaveDisegnata = chiave;
     aggiornaCountdown = () => {};
     aggiornaMenu = () => {};
-    aggiornaCuriosita = () => {};
     const campo = disegnaVista(vista);
     if (campo && dopoTentativo) campo.focus();
   }
   aggiornaCountdown(vista);
   if (vista.kind === 'dentro') {
     aggiornaMenu(vista);
-    aggiornaCuriosita(vista);
   }
 }
 

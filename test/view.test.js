@@ -4,22 +4,33 @@ import assert from 'node:assert/strict';
 import { computeView } from '../src/view.js';
 import { config as configReale } from '../src/config.js';
 
-// Configurazione di prova, indipendente dai contenuti segnaposto reali.
+// Sezioni del Menù di prova: stesse nella configurazione di prova e nelle attese.
+const SEZIONI = [
+  { titolo: 'Antipasti', voci: ['Bruschette', 'Olive'] },
+  { titolo: 'Primo', voci: ['Tagliatelle al ragù'] },
+  { titolo: 'Dolce', voci: ['Tiramisù'] },
+];
+
+// Configurazione di prova, indipendente dai contenuti reali dell'Invito.
 const config = {
   cena: '2030-06-15T20:00:00+02:00',
-  apertura: '2030-06-01T20:00:00+02:00',
+  apertura: { giorniPrima: 7 },
   invitati: [
     { nome: 'Mario Rossi', messaggio: 'Ciao Mario' },
     { nome: 'Àgata Müller', messaggio: 'Ciao Àgata' },
   ],
-  menu: { contenuto: 'Tagliatelle al ragù', sblocco: '2030-06-08T20:00:00+02:00' },
+  menu: {
+    contenuto: SEZIONI,
+    sblocco: { giorniPrima: 3 },
+  },
   messaggioRifiuto: 'Non risulti in lista.',
   messaggioFinale: 'Si mangia!',
 };
 
-const APERTURA = Date.parse(config.apertura);
+// Istanti attesi scritti a mano: 7 e 3 giorni prima della cena, alla stessa ora locale (20:00).
+const APERTURA = Date.parse('2030-06-08T20:00:00+02:00');
 const CENA = Date.parse(config.cena);
-const SBLOCCO_MENU = Date.parse(config.menu.sblocco);
+const SBLOCCO_MENU = Date.parse('2030-06-12T20:00:00+02:00');
 const DOPO_APERTURA = APERTURA + 60_000;
 
 test("prima dell'apertura l'Invito è chiuso e dice quanto manca all'apertura", () => {
@@ -87,21 +98,11 @@ test('il countdown alla cena a cavallo del cambio ora legale usa gli offset dell
   const cambio = {
     ...config,
     cena: '2030-03-31T20:00:00+02:00',
-    apertura: '2030-03-01T20:00:00+01:00',
   };
   // Il 31 marzo 2030 alle 01:00 locale (+01:00) mancano 18 ore reali, non 19, alle 20:00 (+02:00).
   const ora = Date.parse('2030-03-31T01:00:00+01:00');
   const view = computeView(cambio, ora, 'Mario Rossi');
   assert.deepEqual(view.cena.manca, { giorni: 0, ore: 18, minuti: 0, secondi: 0 });
-});
-
-test("la configurazione dell'Invito che andrà online è valida e fa entrare ogni suo Invitato", () => {
-  const dopoApertura = Date.parse(configReale.apertura) + 1000;
-  for (const invitato of configReale.invitati) {
-    const view = computeView(configReale, dopoApertura, invitato.nome);
-    assert.equal(view.kind, 'dentro', invitato.nome);
-    assert.equal(view.messaggio, invitato.messaggio);
-  }
 });
 
 test('due Invitati con lo stesso nome normalizzato fanno fallire la configurazione con un errore chiaro', () => {
@@ -173,7 +174,6 @@ test('il countdown a cavallo del passaggio all\'ora solare (ottobre) conta il te
   const cambio = {
     ...config,
     cena: '2030-10-27T20:00:00+01:00',
-    apertura: '2030-10-01T20:00:00+02:00',
   };
   // Il 27 ottobre 2030 alle 01:00 locale (+02:00) mancano 20 ore reali, non 19, alle 20:00 (+01:00).
   const ora = Date.parse('2030-10-27T01:00:00+02:00');
@@ -187,7 +187,6 @@ test('il countdown di una cena a cavallo del cambio ora legale passa da un\'ora 
   const cambio = {
     ...config,
     cena: '2030-03-31T20:00:00+02:00',
-    apertura: '2030-03-01T20:00:00+01:00',
   };
   // Un secondo prima e un secondo dopo il salto delle 02:00 locali (01:00 UTC): il tempo reale scorre di un solo secondo.
   const prima = computeView(cambio, Date.parse('2030-03-31T01:59:59+01:00'), 'Mario Rossi').cena.manca;
@@ -196,11 +195,16 @@ test('il countdown di una cena a cavallo del cambio ora legale passa da un\'ora 
   assert.deepEqual(dopo, { giorni: 0, ore: 17, minuti: 0, secondi: 0 });
 });
 
-test('prima dello sblocco il Menù mostra solo il tempo mancante allo sblocco, senza contenuto', () => {
+test('prima dello sblocco il Menù mostra solo il tempo mancante allo sblocco, senza voci né titoli', () => {
   const ora = SBLOCCO_MENU - (2 * 86400 + 3 * 3600 + 4 * 60 + 5) * 1000;
   const view = computeView(config, ora, 'Mario Rossi');
   assert.deepEqual(view.menu, { sbloccato: false, manca: { giorni: 2, ore: 3, minuti: 4, secondi: 5 } });
-  assert.ok(!JSON.stringify(view).includes('Tagliatelle'));
+  const esposto = JSON.stringify(view);
+  for (const { titolo, voci } of SEZIONI) {
+    for (const testo of [titolo, ...voci]) {
+      assert.ok(!esposto.includes(testo), `"${testo}" esposto con il Menù bloccato`);
+    }
+  }
 });
 
 test('un secondo prima dello sblocco il Menù è ancora bloccato, mai a zero', () => {
@@ -210,11 +214,22 @@ test('un secondo prima dello sblocco il Menù è ancora bloccato, mai a zero', (
   assert.deepEqual(quasi, { sbloccato: false, manca: { giorni: 0, ore: 0, minuti: 0, secondi: 1 } });
 });
 
-test("all'istante di sblocco e subito dopo il Menù mostra il contenuto", () => {
+test("all'istante di sblocco e subito dopo il Menù mostra tutte le sezioni, nell'ordine della configurazione", () => {
   for (const scarto of [0, 1, 1000]) {
     const { menu } = computeView(config, SBLOCCO_MENU + scarto, 'Mario Rossi');
-    assert.deepEqual(menu, { sbloccato: true, contenuto: 'Tagliatelle al ragù' }, `+${scarto}ms`);
+    assert.deepEqual(menu, { sbloccato: true, sezioni: SEZIONI }, `+${scarto}ms`);
   }
+});
+
+test("le sezioni del Menù seguono l'ordine della configurazione, non quello alfabetico", () => {
+  const ordine = [
+    { titolo: 'Dolce', voci: ['Torta'] },
+    { titolo: 'Aperitivo', voci: ['Patatine', 'Taralli'] },
+  ];
+  const invertito = { ...config, menu: { ...config.menu, contenuto: ordine } };
+  const { menu } = computeView(invertito, SBLOCCO_MENU, 'Mario Rossi');
+  assert.deepEqual(menu.sezioni.map((s) => s.titolo), ['Dolce', 'Aperitivo']);
+  assert.deepEqual(menu.sezioni[1].voci, ['Patatine', 'Taralli']);
 });
 
 test('il Menù resta sbloccato fino alla cena e dopo', () => {
@@ -230,81 +245,162 @@ test("il Menù compare solo dentro l'Invito", () => {
   }
 });
 
-test('lo sblocco del Menù a cavallo del cambio ora legale usa il fuso Europe/Rome', () => {
-  const cambio = {
-    ...config,
-    apertura: '2030-03-01T20:00:00+01:00',
-    menu: { contenuto: 'x', sblocco: '2030-03-31T03:00:00+02:00' },
-  };
-  // 01:59:59 (+01:00) è un secondo reale prima delle 03:00 (+02:00): il salto d'ora non conta.
-  const prima = computeView(cambio, Date.parse('2030-03-31T01:59:59+01:00'), 'Mario Rossi').menu;
-  assert.deepEqual(prima, { sbloccato: false, manca: { giorni: 0, ore: 0, minuti: 0, secondi: 1 } });
-  assert.equal(computeView(cambio, Date.parse('2030-03-31T03:00:00+02:00'), 'Mario Rossi').menu.sbloccato, true);
+// ---- Configurazione reale: istanti attesi scritti a mano, non derivati dal codice ----
+
+const INVITATI_REALI = [
+  ['Mauro', 'Ao so proprio contento de sta qui, ma il gatto lo possiamo portare?'],
+  ['Martina', 'Io me magno tutto, pure il parmigiano, basta che non lo so'],
+  ['Malvina', 'Ripetiamo insieme: senza lattosio non vuol dire senza caseina'],
+  ['Lorenzo', "Ce l'abbiamo il vino, si?"],
+  ['Graziana', 'Ma davvero dobbiamo mangiare senza carne'],
+  ['Alfredo', 'Ma nella soppressata la possono mangiare tutti? e il caciocavallo?'],
+];
+const APERTURA_REALE = Date.parse('2026-10-26T20:00:00+01:00');
+const SBLOCCO_REALE = Date.parse('2026-10-30T20:00:00+01:00');
+const CENA_REALE = Date.parse('2026-11-02T20:00:00+01:00');
+
+test('la cena reale è lunedì 2 novembre 2026 alle 20:00 a Roma', () => {
+  assert.equal(configReale.cena, '2026-11-02T20:00:00+01:00');
 });
 
-test('il Menù della configurazione reale ha contenuto e si sblocca una settimana prima della cena', () => {
-  assert.equal(Date.parse(configReale.cena) - Date.parse(configReale.menu.sblocco), 7 * 86400_000);
-  assert.ok(configReale.menu.contenuto.length > 0);
-});
-
-// Curiosità: tre voci, volutamente NON in ordine di data nella configurazione.
-const configCuriosita = {
-  ...config,
-  curiosita: [
-    { testo: 'Terza', sblocco: '2030-06-10T20:00:00+02:00' },
-    { testo: 'Prima', sblocco: '2030-06-03T20:00:00+02:00' },
-    { testo: 'Seconda', sblocco: '2030-06-06T20:00:00+02:00' },
-  ],
-};
-const SBLOCCO_PRIMA = Date.parse('2030-06-03T20:00:00+02:00');
-const SBLOCCO_SECONDA = Date.parse('2030-06-06T20:00:00+02:00');
-const SBLOCCO_TERZA = Date.parse('2030-06-10T20:00:00+02:00');
-const curiositaA = (ora) => computeView(configCuriosita, ora, 'Mario Rossi').curiosita;
-
-test('nessuna Curiosità sbloccata: solo il teaser con il tempo alla prima', () => {
-  const ora = SBLOCCO_PRIMA - (1 * 86400 + 3 * 3600 + 4 * 60 + 5) * 1000; // dopo l'apertura dell'Invito
-  assert.deepEqual(curiositaA(ora), {
-    sbloccate: [],
-    prossima: { giorni: 1, ore: 3, minuti: 4, secondi: 5 },
-  });
-});
-
-test('alcune Curiosità sbloccate: solo quelle passate e il tempo alla prossima ancora bloccata', () => {
-  const ora = SBLOCCO_SECONDA + (1 * 86400 + 2 * 3600) * 1000;
-  assert.deepEqual(curiositaA(ora), {
-    sbloccate: ['Prima', 'Seconda'],
-    // Dal 7 giugno alle 22:00 al 10 giugno alle 20:00 mancano 2 giorni e 22 ore.
-    prossima: { giorni: 2, ore: 22, minuti: 0, secondi: 0 },
-  });
-});
-
-test('tutte le Curiosità sbloccate: nessun teaser', () => {
-  const view = curiositaA(SBLOCCO_TERZA + 1000);
-  assert.deepEqual(view, { sbloccate: ['Prima', 'Seconda', 'Terza'], prossima: undefined });
-});
-
-test("le Curiosità sono in ordine di data di sblocco, qualunque sia l'ordine nella configurazione", () => {
-  assert.deepEqual(curiositaA(SBLOCCO_TERZA).sbloccate, ['Prima', 'Seconda', 'Terza']);
-  const rovesciata = { ...configCuriosita, curiosita: [...configCuriosita.curiosita].reverse() };
+test('i sei Invitati reali entrano con il loro Messaggio personalizzato identico, e sono solo loro', () => {
   assert.deepEqual(
-    computeView(rovesciata, SBLOCCO_TERZA, 'Mario Rossi').curiosita.sbloccate,
-    ['Prima', 'Seconda', 'Terza'],
+    configReale.invitati.map((i) => [i.nome, i.messaggio]),
+    INVITATI_REALI,
   );
+  for (const [nome, messaggio] of INVITATI_REALI) {
+    for (const scritto of [nome, nome.toUpperCase(), `  ${nome.toLowerCase()}  `]) {
+      const view = computeView(configReale, APERTURA_REALE, scritto);
+      assert.equal(view.kind, 'dentro', scritto);
+      assert.equal(view.messaggio, messaggio);
+    }
+  }
 });
 
-test("una Curiosità è sbloccata esattamente all'istante di sblocco, non un istante prima", () => {
-  assert.deepEqual(curiositaA(SBLOCCO_PRIMA - 1), {
-    sbloccate: [],
-    prossima: { giorni: 0, ore: 0, minuti: 0, secondi: 1 },
-  });
-  assert.deepEqual(curiositaA(SBLOCCO_PRIMA).sbloccate, ['Prima']);
-  assert.deepEqual(curiositaA(SBLOCCO_SECONDA - 1000).sbloccate, ['Prima']);
-  assert.deepEqual(curiositaA(SBLOCCO_SECONDA).sbloccate, ['Prima', 'Seconda']);
-  assert.equal(curiositaA(SBLOCCO_TERZA - 1000).prossima.secondi, 1);
-  assert.equal(curiositaA(SBLOCCO_TERZA).prossima, undefined);
+test("i nomi accentati a sproposito entrano; i vecchi nomi di prova non entrano più", () => {
+  assert.equal(computeView(configReale, APERTURA_REALE, 'MÀURO').kind, 'dentro');
+  for (const nome of ['Mario Rossi', 'Giulia Bianchi']) {
+    const view = computeView(configReale, APERTURA_REALE, nome);
+    assert.equal(view.kind, 'rifiutato', nome);
+    assert.equal(view.messaggio, configReale.messaggioRifiuto);
+  }
 });
 
-test('la sezione Curiosità è nella vista solo per un Invitato dentro', () => {
-  assert.equal(computeView(configCuriosita, DOPO_APERTURA, undefined).curiosita, undefined);
-  assert.equal(computeView(configCuriosita, DOPO_APERTURA, 'Luigi Verdi').curiosita, undefined);
+test("l'Invito reale è chiuso fino a lunedì 26/10 alle 20:00 e aperto da lì", () => {
+  assert.equal(computeView(configReale, APERTURA_REALE - 1000, undefined).kind, 'chiuso');
+  assert.equal(computeView(configReale, APERTURA_REALE - 1000, 'Mauro').kind, 'chiuso');
+  assert.equal(computeView(configReale, APERTURA_REALE, undefined).kind, 'ingresso');
+});
+
+test('il Menù reale è teaser fino a venerdì 30/10 alle 20:00 e sbloccato da lì', () => {
+  const prima = computeView(configReale, SBLOCCO_REALE - 1000, 'Mauro').menu;
+  assert.equal(prima.sbloccato, false);
+  assert.equal('sezioni' in prima, false);
+  for (const ora of [SBLOCCO_REALE, CENA_REALE, CENA_REALE + 86400_000]) {
+    assert.equal(computeView(configReale, ora, 'Mauro').menu.sbloccato, true);
+  }
+});
+
+test("il Menù reale sbloccato mostra tutte le sezioni e le voci concordate, nell'ordine", () => {
+  const { menu } = computeView(configReale, SBLOCCO_REALE, 'Mauro');
+  assert.deepEqual(menu.sezioni, [
+    { titolo: 'Aperitivo', voci: ['Patatine', 'Taralli'] },
+    {
+      titolo: 'Antipasti',
+      voci: [
+        'Focaccia bianca',
+        'Soppressata',
+        'Caciocavallo',
+        'Melanzane e zucchine grigliate e condite con menta',
+        'Polenta nel forno con maionese',
+        'Polpette di verdure con maionese',
+        'Bicchierini di riso Venere con verdurine e gamberetti',
+      ],
+    },
+    {
+      titolo: 'Secondo',
+      voci: ['Spiedini di calamari gratinati al forno con contorno di polpette di patate'],
+    },
+    { titolo: 'Dolce', voci: ['Crostata di mele cotogne'] },
+    { titolo: 'Bevande', voci: ['Vino bianco', 'Prosecco (con il dolce)'] },
+  ]);
+});
+
+test('dalla cena reale in poi c\'è solo "Si mangia!"', () => {
+  const { cena } = computeView(configReale, CENA_REALE, 'Mauro');
+  assert.equal(cena.siMangia, true);
+  assert.equal(cena.messaggio, 'Si mangia!');
+});
+
+test("Apertura e Sblocco si spostano insieme alla cena", () => {
+  const spostata = { ...config, cena: '2030-07-20T20:00:00+02:00' };
+  const apertura = Date.parse('2030-07-13T20:00:00+02:00');
+  const sblocco = Date.parse('2030-07-17T20:00:00+02:00');
+  assert.equal(computeView(spostata, apertura - 1000, undefined).kind, 'chiuso');
+  assert.equal(computeView(spostata, apertura, undefined).kind, 'ingresso');
+  assert.equal(computeView(spostata, sblocco - 1000, 'Mario Rossi').menu.sbloccato, false);
+  assert.equal(computeView(spostata, sblocco, 'Mario Rossi').menu.sbloccato, true);
+});
+
+test("l'Apertura cade alla stessa ora locale della cena anche a cavallo del passaggio all'ora legale", () => {
+  const cambio = { ...config, cena: '2030-03-31T20:00:00+02:00' };
+  // 7 giorni prima: 24 marzo alle 20:00 locali (+01:00), non alle 21:00 come darebbero 168 ore reali.
+  assert.equal(computeView(cambio, Date.parse('2030-03-24T19:59:59+01:00'), undefined).kind, 'chiuso');
+  assert.equal(computeView(cambio, Date.parse('2030-03-24T20:00:00+01:00'), undefined).kind, 'ingresso');
+});
+
+test("l'Apertura cade alla stessa ora locale della cena anche a cavallo del passaggio all'ora solare", () => {
+  const cambio = { ...config, cena: '2030-10-27T20:00:00+01:00' };
+  // 7 giorni prima: 20 ottobre alle 20:00 locali (+02:00), non alle 19:00 come darebbero 168 ore reali.
+  assert.equal(computeView(cambio, Date.parse('2030-10-20T19:59:59+02:00'), undefined).kind, 'chiuso');
+  assert.equal(computeView(cambio, Date.parse('2030-10-20T20:00:00+02:00'), undefined).kind, 'ingresso');
+});
+
+test('lo Sblocco del Menù cade alla stessa ora locale della cena a cavallo del cambio ora legale', () => {
+  for (const [cena, sblocco] of [
+    ['2030-03-31T20:00:00+02:00', '2030-03-28T20:00:00+01:00'],
+    ['2030-10-27T20:00:00+01:00', '2030-10-24T20:00:00+02:00'],
+  ]) {
+    const cambio = { ...config, cena };
+    const istante = Date.parse(sblocco);
+    assert.equal(computeView(cambio, istante - 1000, 'Mario Rossi').menu.sbloccato, false, sblocco);
+    assert.equal(computeView(cambio, istante, 'Mario Rossi').menu.sbloccato, true, sblocco);
+  }
+});
+
+test('la vista di un Invitato dentro non ha più il campo curiosita', () => {
+  assert.equal('curiosita' in computeView(config, DOPO_APERTURA, 'Mario Rossi'), false);
+});
+
+test('una sezione del Menù senza titolo, senza voci o con voci vuote fa fallire la configurazione con un errore chiaro', () => {
+  const sezioniNonValide = {
+    'titolo mancante': [{ voci: ['Olive'] }],
+    'titolo vuoto': [{ titolo: '   ', voci: ['Olive'] }],
+    'voci mancanti': [{ titolo: 'Antipasti' }],
+    'nessuna voce': [{ titolo: 'Antipasti', voci: [] }],
+    'solo voci vuote': [{ titolo: 'Antipasti', voci: ['', '  '] }],
+    'una voce vuota tra le altre': [{ titolo: 'Antipasti', voci: ['Olive', ' '] }],
+    'contenuto senza sezioni': [],
+    'contenuto stringa': 'Tagliatelle',
+  };
+  for (const [caso, contenuto] of Object.entries(sezioniNonValide)) {
+    const nonValida = { ...config, menu: { ...config.menu, contenuto } };
+    for (const ora of [DOPO_APERTURA, SBLOCCO_MENU]) {
+      assert.throws(() => computeView(nonValida, ora, 'Mario Rossi'), /Menù/, caso);
+    }
+  }
+});
+
+test("l'Apertura e lo Sblocco senza giorniPrima intero fanno fallire la configurazione con un errore chiaro", () => {
+  for (const valore of [undefined, null, '7', 7.5, NaN, Infinity]) {
+    const senzaApertura = { ...config, apertura: { giorniPrima: valore } };
+    const senzaSblocco = { ...config, menu: { ...config.menu, sblocco: { giorniPrima: valore } } };
+    for (const ora of [APERTURA - 1000, DOPO_APERTURA, SBLOCCO_MENU]) {
+      assert.throws(() => computeView(senzaApertura, ora, 'Mario Rossi'), /Apertura.*giorniPrima/, `apertura ${valore}`);
+      assert.throws(() => computeView(senzaSblocco, ora, 'Mario Rossi'), /Sblocco.*giorniPrima/, `sblocco ${valore}`);
+    }
+  }
+  assert.throws(() => computeView({ ...config, apertura: undefined }, DOPO_APERTURA, undefined), /Apertura.*giorniPrima/);
+  const menuSenzaSblocco = { ...config, menu: { contenuto: config.menu.contenuto } };
+  assert.throws(() => computeView(menuSenzaSblocco, DOPO_APERTURA, undefined), /Sblocco.*giorniPrima/);
 });

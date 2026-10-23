@@ -19,7 +19,7 @@
  *   focus su carta 6.9, su carta-alta 6.6, su sfondo 6.4: anello del focus, servono 3:1
  *   negato su negato-sfondo 5.7 (negato su carta 6.5): messaggio di rifiuto
  *   viola su carta 6.9 (su carta-alta 6.6)   corallo-scuro su carta 5.3
- *   turchese-scuro su carta 6.1               rosa-scuro su carta 5.9
+ *   turchese-scuro su carta 6.1
  *   testo sulle tessere del countdown: corallo 5.3, giallo 9.7, turchese 6.9, rosa 6.3
  * Gli accenti vivaci (corallo, giallo, turchese, rosa) NON bastano come testo su
  * bianco (corallo 2.8:1, giallo 1.5, turchese 2.2, rosa 2.4): sono solo decorazione
@@ -60,7 +60,6 @@
   /* accenti abbastanza scuri da essere testo normale su bianco */
   --corallo-scuro: #c8321f;
   --turchese-scuro: #0b6e65;
-  --rosa-scuro: #c2185b;
 
   --bottone: #ff6b5b;
   --su-bottone: #1c2352;
@@ -101,8 +100,8 @@ body {
 /*
  * Cornice di festa. Markup statico in index.html (fuori da #invito): festone in cima,
  * sei palloncini che ondeggiano piano, coriandoli fissi. Tutto aria-hidden, inerte e
- * dietro la scheda (z-index 0 contro 1): non copre mai Ingresso, countdown, Menù o
- * Curiosità. I palloncini e i coriandoli sono fixed, quindi non allargano la pagina.
+ * dietro la scheda (z-index 0 contro 1): non copre mai Ingresso, countdown, Menù.
+ * I palloncini e i coriandoli sono fixed, quindi non allargano la pagina.
  */
 .festa {
   pointer-events: none;
@@ -397,16 +396,14 @@ p {
   border-radius: 0.9rem;
 }
 
-/* Sezioni (Menù, Curiosità) */
-.menu,
-.curiosita {
+/* Sezione Menù */
+.menu {
   margin-top: 1.75rem;
   padding-top: 1rem;
   border-top: 2px dotted var(--linea-morbida);
 }
 
-.menu h2,
-.curiosita h2 {
+.menu h2 {
   margin: 0 0 0.6rem;
   font-family: var(--titoli);
   font-size: 0.95rem;
@@ -416,54 +413,42 @@ p {
   color: var(--corallo-scuro);
 }
 
-.curiosita h2 {
-  color: var(--turchese-scuro);
-}
-
 .menu p {
   margin: 0;
 }
 
-.menu .countdown,
-.teaser-curiosita .countdown {
+.menu-sezione + .menu-sezione {
+  margin-top: 1rem;
+}
+
+.menu h3 {
+  margin: 0 0 0.3rem;
+  font-family: var(--titoli);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--viola);
+}
+
+.menu ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  text-align: left;
+}
+
+.menu li + li {
+  margin-top: 0.15rem;
+}
+
+.menu .countdown {
   margin-top: 0.6rem;
 }
 
-.menu .countdown .valore,
-.teaser-curiosita .countdown .valore {
+.menu .countdown .valore {
   font-size: 1.35rem;
 }
 
 .menu .countdown-testo {
   font-size: 1.35rem;
-}
-
-.curiosita {
-  text-align: left;
-}
-
-.lista-curiosita {
-  margin: 0;
-  padding-left: 1.25rem;
-}
-
-.lista-curiosita li + li {
-  margin-top: 0.6rem;
-}
-
-.lista-curiosita li::marker {
-  color: var(--rosa-scuro);
-}
-
-.teaser-curiosita {
-  margin-top: 1rem;
-  text-align: center;
-}
-
-.teaser-curiosita p {
-  margin: 0;
-  font-size: 0.9rem;
-  color: var(--tenue);
 }
 
 /* L'Ingresso: campo del nome con etichetta */
@@ -552,16 +537,6 @@ button:focus-visible {
   border: 0;
   text-decoration: underline;
   cursor: pointer;
-}
-
-/* Nota discreta sui contenuti segnaposto (visibile finché config.segnaposto è true) */
-.invito > .nota-segnaposto {
-  margin: 1.5rem 0 0;
-  padding-top: 0.75rem;
-  border-top: 2px dotted var(--linea-morbida);
-  font-size: 0.75rem;
-  letter-spacing: 0.02em;
-  color: var(--tenue);
 }
 
 /* Piccoli movimenti, solo per chi non ha chiesto di ridurli */

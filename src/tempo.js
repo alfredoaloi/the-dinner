@@ -1,5 +1,5 @@
 // Visualizzazione del tempo mancante (giorni, ore, minuti, secondi).
-// Riusabile da ogni sezione: countdown alla cena, teaser di Curiosità e Menù, Invito chiuso.
+// Riusabile da ogni sezione: countdown alla cena, teaser del Menù, Invito chiuso.
 // Sta nello strato di presentazione: tocca il DOM, ma non l'orologio né lo storage.
 //
 // creaTempoMancante(etichetta) -> { elemento, aggiorna }

@@ -4,8 +4,6 @@ import assert from 'node:assert/strict';
 import { config } from '../src/config.js';
 
 const ISO_CON_OFFSET_ROMA = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?\+0[12]:00$/;
-const DUE_SETTIMANE_MS = 14 * 24 * 3600 * 1000;
-const UNA_SETTIMANA_MS = 7 * 24 * 3600 * 1000;
 
 function istante(iso) {
   const ms = Date.parse(iso);
@@ -18,15 +16,9 @@ test('la data della cena è un solo campo con offset Europe/Rome', () => {
   istante(config.cena);
 });
 
-test("l'Invito si apre due settimane prima della cena", () => {
-  assert.match(config.apertura, ISO_CON_OFFSET_ROMA);
-  assert.equal(istante(config.cena) - istante(config.apertura), DUE_SETTIMANE_MS);
-});
-
-test('il Menù si sblocca una settimana prima della cena', () => {
-  assert.match(config.menu.sblocco, ISO_CON_OFFSET_ROMA);
-  assert.equal(istante(config.cena) - istante(config.menu.sblocco), UNA_SETTIMANA_MS);
-  assert.ok(config.menu.contenuto.trim().length > 0);
+test("l'Apertura e lo Sblocco del Menù sono giorni prima della cena, interi, e non date assolute", () => {
+  assert.deepEqual(config.apertura, { giorniPrima: 7 });
+  assert.deepEqual(config.menu.sblocco, { giorniPrima: 3 });
 });
 
 /** Offset reale di Europe/Rome (es. "+01:00") nell'istante dato, calcolato da Intl. */
@@ -50,17 +42,9 @@ function offsetRoma(ms) {
   return `${segno}${ore}:${min}`;
 }
 
-test("ogni istante in config ha l'offset Europe/Rome corretto per quella data", () => {
-  const istanti = {
-    cena: config.cena,
-    apertura: config.apertura,
-    'menu.sblocco': config.menu.sblocco,
-    ...Object.fromEntries(config.curiosita.map((c, i) => [`curiosita[${i}].sblocco`, c.sblocco])),
-  };
-  for (const [nome, iso] of Object.entries(istanti)) {
-    const scritto = iso.slice(-6);
-    assert.equal(scritto, offsetRoma(istante(iso)), `${nome}: offset ${scritto} sbagliato per ${iso}`);
-  }
+test("la cena in config ha l'offset Europe/Rome corretto per quella data", () => {
+  const scritto = config.cena.slice(-6);
+  assert.equal(scritto, offsetRoma(istante(config.cena)), `cena: offset ${scritto} sbagliato per ${config.cena}`);
 });
 
 test('ogni Invitato ha un nome e un Messaggio personalizzato', () => {
@@ -71,34 +55,38 @@ test('ogni Invitato ha un nome e un Messaggio personalizzato', () => {
   }
 });
 
-test('ogni Curiosità ha un testo e una data di sblocco esplicita tra apertura e cena', () => {
-  for (const curiosita of config.curiosita) {
-    assert.ok(curiosita.testo.trim().length > 0);
-    assert.match(curiosita.sblocco, ISO_CON_OFFSET_ROMA);
-    const quando = istante(curiosita.sblocco);
-    assert.ok(quando >= istante(config.apertura), "sblocco prima dell'apertura");
-    assert.ok(quando < istante(config.cena), 'sblocco dopo la cena');
-  }
-});
-
 test('il messaggio di rifiuto è fisso e il messaggio finale è "Si mangia!"', () => {
   assert.ok(config.messaggioRifiuto.trim().length > 0);
   assert.equal(config.messaggioFinale, 'Si mangia!');
 });
 
-test('i testi hanno il marcatore SEGNAPOSTO se e solo se config.segnaposto è true', () => {
-  const testi = [
-    ...config.invitati.map((i) => i.messaggio),
-    ...config.curiosita.map((c) => c.testo),
-    config.menu.contenuto,
-  ];
-  for (const testo of testi) {
-    assert.equal(
-      testo.includes('SEGNAPOSTO'),
-      config.segnaposto === true,
-      config.segnaposto
-        ? `testo senza marcatore SEGNAPOSTO: "${testo}"`
-        : `marcatore SEGNAPOSTO rimasto con segnaposto: false: "${testo}"`,
-    );
+/** Tutte le stringhe della configurazione, a qualunque profondità, con chiavi e valori. */
+function tutteLeStringhe(valore, fuori = []) {
+  if (typeof valore === 'string') fuori.push(valore);
+  else if (valore && typeof valore === 'object') {
+    for (const [chiave, v] of Object.entries(valore)) {
+      fuori.push(chiave);
+      tutteLeStringhe(v, fuori);
+    }
+  }
+  return fuori;
+}
+
+test('nessun testo né chiave della configurazione contiene SEGNAPOSTO, e il flag segnaposto non esiste', () => {
+  for (const testo of tutteLeStringhe(config)) {
+    assert.ok(!/segnaposto/i.test(testo), `segnaposto rimasto: "${testo}"`);
+  }
+  assert.equal('segnaposto' in config, false);
+});
+
+test('il campo curiosita non esiste più in configurazione', () => {
+  assert.equal('curiosita' in config, false);
+});
+
+test('ogni sezione del Menù reale ha un titolo e voci non vuote', () => {
+  assert.ok(config.menu.contenuto.length > 0);
+  for (const { titolo, voci } of config.menu.contenuto) {
+    assert.ok(titolo.trim().length > 0);
+    assert.ok(voci.length > 0 && voci.every((v) => v.trim().length > 0));
   }
 });
