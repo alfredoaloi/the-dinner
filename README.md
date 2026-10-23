@@ -29,16 +29,29 @@ I test controllano che `apertura` e `sblocco` siano i giorni-prima previsti, che
 
 ### Il Menù a sezioni
 
-`menu.contenuto` è una lista **ordinata** di sezioni (Aperitivo, Antipasti, Secondo, Dolce, Bevande...). Ogni sezione ha un `titolo` e una lista di `voci`:
+`menu.contenuto` è una lista **ordinata** di **Sezioni** (Aperitivo, Antipasti, Secondo, Dolce, Bevande...). Ogni Sezione ha un `titolo`, un `sottotitolo` (una battuta corta) e una lista **ordinata** di `voci`. Ogni **Voce** è un oggetto con il `nome` del piatto e una **Nota** (la battuta sotto il nome):
 
 ```js
 contenuto: [
-  { titolo: 'Antipasti', voci: ['Focaccia bianca', 'Soppressata'] },
-  { titolo: 'Dolce', voci: ['Crostata di mele cotogne'] },
+  {
+    titolo: 'Antipasti',
+    sottotitolo: 'il round più lungo',
+    voci: [
+      { nome: 'Focaccia bianca', nota: 'Qui si capisce chi è venuto per mangiare davvero.' },
+      { nome: 'Soppressata', nota: "Graziana, questa è tutta tua: è l'unica carne della serata." },
+    ],
+  },
+  {
+    titolo: 'Dolce',
+    sottotitolo: 'chi lascia, perde',
+    voci: [{ nome: 'Crostata di mele cotogne', nota: 'Cotta bene, che da crude le cotogne non perdonano.' }],
+  },
 ],
 ```
 
-Dallo **Sblocco** l'Invitato dentro vede tutte le sezioni insieme, nell'ordine in cui le scrivi: ogni sezione è un sottotitolo con le sue voci in un elenco puntato. Prima dello Sblocco vede solo il teaser con il tempo mancante: né titoli né voci arrivano alla pagina. Se una sezione non ha un titolo o non ha almeno una voce non vuota, l'Invito non parte e mostra un errore chiaro.
+Tutti i campi (`titolo`, `sottotitolo`, almeno una voce, e per ogni voce `nome` e `nota`) sono **obbligatori e non vuoti**. Il vecchio formato, con le voci scritte come semplici stringhe (`voci: ['Focaccia bianca']`), non è più valido. Se manca qualcosa l'Invito non parte e mostra un errore chiaro in italiano che nomina la Sezione o la Voce incompleta.
+
+Dallo **Sblocco** il Menù si intitola "Si mangia così" e l'Invitato dentro vede tutte le Sezioni insieme, nell'ordine in cui le scrivi, come tessere numerate dai colori che si alternano: il numero e il colore vengono dalla posizione della Sezione, non dalla configurazione. Ogni Sezione mostra titolo e sottotitolo, e ogni Voce il nome seguito dalla Nota. Prima dello Sblocco vede solo il teaser con il tempo mancante: né titoli, né sottotitoli, né nomi, né note arrivano alla pagina. Tutto il testo è mostrato com'è scritto (nessun HTML è interpretato).
 
 Non scrivere mai l'indirizzo di casa: il repository è pubblico e l'Invito non lo mostra, né deve mostrarlo. Se vuoi dirlo agli amici, fallo in chat.
 
@@ -58,7 +71,7 @@ Due **Invitati** il cui nome è uguale una volta normalizzato (maiuscole, spazi 
 L'Invito è chiaro e festoso e ha **solo il tema chiaro**: nessuna variante scura, nemmeno se il dispositivo è in modo scuro (`color-scheme` e `theme-color` in `index.html` sono chiaro/crema). Le variabili colore stanno nel blocco `:root` di [`src/style.css`](src/style.css).
 
 - Sfondo crema (`#fff4e0`), scheda bianca con bordo morbido, testo blu notte (`#1c2352`, mai nero), pulsanti corallo con testo blu notte.
-- Accenti vivaci: corallo, giallo sole, turchese, rosa, viola. Corallo, giallo, turchese e rosa sono solo decorazione o sfondo di tessere (con testo blu notte), perché su bianco non bastano come testo (2.8, 1.5, 2.2 e 2.4:1). Per il testo normale si usano il viola e le varianti scure (`--corallo-scuro`, `--turchese-scuro`).
+- Accenti vivaci: corallo, giallo sole, turchese, rosa, viola. Corallo, giallo, turchese e rosa sono solo decorazione o sfondo di tessere (con testo blu notte), perché su bianco non bastano come testo (2.8, 1.5, 2.2 e 2.4:1). Per il testo normale si usano il viola e le varianti scure (`--corallo-scuro`, `--turchese-scuro`). Nel Menù le tessere ciclano corallo, giallo, turchese, rosa, viola (testo blu notte, bianco sul viola).
 - Font di sistema, nessuna risorsa esterna: stack arrotondato per i titoli, stack di sistema per il testo.
 
 Contrasti calcolati (WCAG 2.x), soglie 4.5:1 per il testo normale e 3:1 per testo grande, bordi dei campi e anello del focus:
@@ -72,7 +85,8 @@ Contrasti calcolati (WCAG 2.x), soglie 4.5:1 per il testo normale e 3:1 per test
 | anello del focus su scheda (su scheda in rilievo, su sfondo) | 6.9 (6.6, 6.4) |
 | testo del rifiuto su sfondo del rifiuto | 5.7 |
 | viola / corallo scuro / turchese scuro / rosa scuro su scheda | 6.9 / 5.3 / 6.1 / 5.9 |
-| testo blu notte sulle tessere corallo / giallo / turchese / rosa | 5.3 / 9.7 / 6.9 / 6.3 |
+| testo blu notte sulle tessere corallo / giallo / turchese / rosa (countdown e Menù) | 5.3 / 9.7 / 6.9 / 6.3 |
+| testo bianco (`--carta`) sulla tessera viola del Menù | 6.9 |
 
 [`test/contrasti.test.js`](test/contrasti.test.js) legge le variabili da `:root` e fallisce se una di queste coppie scende sotto soglia: se cambi un colore, lancia `npm test` e aggiorna le cifre qui e nel commento in cima a `src/style.css`.
 

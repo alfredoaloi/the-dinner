@@ -2,7 +2,7 @@
 // L'UNICO FILE DI DATI DELL'INVITO
 //
 // Tutto ciò che si cambia per davvero sta qui: data della cena, Invitati,
-// Messaggi personalizzati e Menù (a sezioni).
+// Messaggi personalizzati e Menù (a sezioni, con sottotitolo e nota su ogni voce).
 // Non serve toccare nient'altro.
 //
 // ATTENZIONE: il repository è pubblico, quindi anche questo file lo è.
@@ -53,32 +53,75 @@ export const config = {
   // Menù. Lo Sblocco è 3 giorni prima della cena, alla stessa ora della cena;
   // anche questo si sposta da solo con la cena.
   //
-  // `contenuto` è una lista ORDINATA di sezioni: l'Invito le mostra nello stesso ordine.
-  // Ogni sezione ha un `titolo` (il sottotitolo, per esempio "Antipasti") e una lista di `voci`
-  // (un testo per voce, mostrato come elenco puntato). Ogni sezione deve avere un titolo e almeno
-  // una voce non vuota, altrimenti l'Invito non parte e mostra un errore chiaro.
-  // Prima dello sblocco nessun titolo e nessuna voce arriva alla pagina: c'è solo il teaser.
+  // `contenuto` è una lista ORDINATA di Sezioni: l'Invito le mostra nello stesso ordine.
+  // Ogni Sezione ha tre campi, tutti obbligatori e non vuoti:
+  //   titolo       il nome della Sezione (per esempio "Antipasti")
+  //   sottotitolo  una battuta corta sotto il titolo (per esempio "il round più lungo")
+  //   voci         la lista ORDINATA delle Voci, almeno una
+  // Ogni Voce è un oggetto `{ nome, nota }`, entrambi obbligatori e non vuoti:
+  //   nome         il piatto o la bevanda
+  //   nota         la battuta sotto il nome
+  // Il vecchio formato (una Voce scritta come semplice stringa) non è più valido.
+  // Se manca qualcosa l'Invito non parte e mostra un errore chiaro che nomina la Sezione o la Voce.
+  // Prima dello sblocco nessun titolo, sottotitolo, nome o nota arriva alla pagina: c'è solo il teaser.
   menu: {
     contenuto: [
-      { titolo: 'Aperitivo', voci: ['Patatine', 'Taralli'] },
+      {
+        titolo: 'Aperitivo',
+        sottotitolo: "per ingannare l'attesa",
+        voci: [
+          { nome: 'Patatine', nota: 'Il minimo sindacale. Si comincia bassi.' },
+          { nome: 'Taralli', nota: "Pericolo: uno tira l'altro." },
+        ],
+      },
       {
         titolo: 'Antipasti',
+        sottotitolo: 'il round più lungo',
         voci: [
-          'Focaccia bianca',
-          'Soppressata',
-          'Caciocavallo',
-          'Melanzane e zucchine grigliate e condite con menta',
-          'Polenta nel forno con maionese',
-          'Polpette di verdure con maionese',
-          'Bicchierini di riso Venere con verdurine e gamberetti',
+          { nome: 'Focaccia bianca', nota: 'Qui si capisce chi è venuto per mangiare davvero.' },
+          { nome: 'Soppressata', nota: "Graziana, questa è tutta tua: è l'unica carne della serata." },
+          {
+            nome: 'Caciocavallo',
+            nota: "Malvina: qui c'è caseina, guardalo da lontano. Tutti gli altri: felicità.",
+          },
+          {
+            nome: 'Melanzane e zucchine grigliate e condite con menta',
+            nota: 'Verdura, ma con la menta: quindi è raffinata.',
+          },
+          { nome: 'Polenta nel forno con maionese', nota: 'La maionese è un gruppo alimentare.' },
+          {
+            nome: 'Polpette di verdure con maionese',
+            nota: 'Sì, ancora maionese. Nessuno ha chiesto se bastasse.',
+          },
+          {
+            nome: 'Bicchierini di riso Venere con verdurine e gamberetti',
+            nota: "Quello da foto. Mangiatelo prima che si sgonfi l'hype.",
+          },
         ],
       },
       {
         titolo: 'Secondo',
-        voci: ['Spiedini di calamari gratinati al forno con contorno di polpette di patate'],
+        sottotitolo: 'il piatto forte',
+        voci: [
+          {
+            nome: 'Spiedini di calamari gratinati al forno con contorno di polpette di patate',
+            nota: 'Il pezzo forte. Non è carne, è mare: vale lo stesso.',
+          },
+        ],
       },
-      { titolo: 'Dolce', voci: ['Crostata di mele cotogne'] },
-      { titolo: 'Bevande', voci: ['Vino bianco', 'Prosecco (con il dolce)'] },
+      {
+        titolo: 'Dolce',
+        sottotitolo: 'chi lascia, perde',
+        voci: [{ nome: 'Crostata di mele cotogne', nota: 'Cotta bene, che da crude le cotogne non perdonano.' }],
+      },
+      {
+        titolo: 'Bevande',
+        sottotitolo: 'per annaffiare il tutto',
+        voci: [
+          { nome: 'Vino bianco', nota: "Lorenzo: sì, ce l'abbiamo." },
+          { nome: 'Prosecco (con il dolce)', nota: 'Arriva col dolce. Chi lo stappa prima sta fuori.' },
+        ],
+      },
     ],
     sblocco: { giorniPrima: 3 },
   },

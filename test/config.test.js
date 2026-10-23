@@ -83,10 +83,16 @@ test('il campo curiosita non esiste più in configurazione', () => {
   assert.equal('curiosita' in config, false);
 });
 
-test('ogni sezione del Menù reale ha un titolo e voci non vuote', () => {
+test('ogni sezione del Menù reale ha titolo, sottotitolo e voci con nome e nota non vuoti', () => {
   assert.ok(config.menu.contenuto.length > 0);
-  for (const { titolo, voci } of config.menu.contenuto) {
-    assert.ok(titolo.trim().length > 0);
-    assert.ok(voci.length > 0 && voci.every((v) => v.trim().length > 0));
+  for (const { titolo, sottotitolo, voci } of config.menu.contenuto) {
+    assert.ok(titolo.trim().length > 0, 'titolo vuoto');
+    assert.ok(sottotitolo.trim().length > 0, `sottotitolo vuoto in "${titolo}"`);
+    assert.ok(voci.length > 0, `nessuna voce in "${titolo}"`);
+    for (const { nome, nota } of voci) {
+      assert.equal(typeof nome, 'string', `voce non valida in "${titolo}"`);
+      assert.ok(nome.trim().length > 0, `nome vuoto in "${titolo}"`);
+      assert.ok(typeof nota === 'string' && nota.trim().length > 0, `nota vuota per "${nome}"`);
+    }
   }
 });

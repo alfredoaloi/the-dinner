@@ -29,8 +29,24 @@ L'istante in cui l'Invito smette di essere chiuso e l'Invitato può passare dall
 _Avoid_: Lancio, apertura del sito
 
 **Menù**:
-La sezione, visibile solo a un Invitato entrato, che elenca cosa si mangia e si beve. Resta un teaser con countdown fino allo Sblocco.
+La parte dell'Invito, visibile solo a un Invitato entrato, che dice cosa si mangia e si beve: una lista ordinata di Sezioni, ognuna con le sue Voci. Resta un teaser con countdown fino allo Sblocco; poi si intitola "Si mangia così" (da non confondere con il `messaggioFinale` "Si mangia!", che compare alla cena).
 _Avoid_: Carta, programma
+
+**Sezione**:
+Un gruppo ordinato del Menù (per esempio Antipasti): ha un titolo, un sottotitolo corto e una o più Voci. Titolo e sottotitolo sono obbligatori, e la posizione nella lista è l'ordine della cena.
+_Avoid_: Portata, categoria, tessera (la tessera è solo l'aspetto grafico di una Sezione)
+
+**Sottotitolo**:
+La battuta corta sotto il titolo di una Sezione (per esempio "il round più lungo"). Obbligatorio, come il titolo.
+_Avoid_: Descrizione, slogan, occhiello
+
+**Voce**:
+Un piatto o una bevanda dentro una Sezione: ha un nome e una Nota, entrambi obbligatori.
+_Avoid_: Piatto, elemento, riga
+
+**Nota**:
+La battuta breve sotto il nome di una Voce. È la stessa per tutti gli Invitati, anche quando cita qualcuno per nome.
+_Avoid_: Descrizione, commento, didascalia
 
 **Sblocco**:
 L'istante in cui il Menù passa da teaser a contenuto. Si esprime in giorni prima della cena, alla stessa ora della cena.

@@ -39,6 +39,13 @@ function crea(tag, testo, classe) {
   return el;
 }
 
+/** Un elenco (<ul> o <ol>) senza puntini; `role="list"` perché con list-style: none Safari/VoiceOver toglie la semantica di elenco. */
+function elencoSenzaPuntini(tag, classe) {
+  const elenco = crea(tag, undefined, classe);
+  elenco.setAttribute('role', 'list');
+  return elenco;
+}
+
 // Scoppio di coriandoli: quanti pezzi e come si aprono.
 const PEZZI_SCOPPIO = 32;
 const CLASSI_COLORE = 5; // classi colore .c0–.c4 di .pezzo in src/style.css: se ne aggiungi una lì, alza questo numero
@@ -93,18 +100,31 @@ function countdown(etichetta, leggi) {
   return elemento;
 }
 
-/** Una sezione del Menù sbloccato: sottotitolo con la lista puntata delle sue voci. */
-function sezioneDelMenu({ titolo, voci }) {
-  const gruppo = crea('div', undefined, 'menu-sezione');
-  const elenco = crea('ul');
-  elenco.append(...voci.map((voce) => crea('li', voce)));
-  gruppo.append(crea('h3', titolo), elenco);
-  return gruppo;
+/** Una Voce del Menù: il nome seguito dalla Nota. Solo testo (textContent), mai HTML interpretato. */
+function voceDelMenu({ nome, nota }) {
+  const voce = crea('li');
+  voce.append(crea('strong', nome, 'voce-nome'), crea('em', nota, 'voce-nota'));
+  return voce;
+}
+
+/**
+ * Una Sezione del Menù sbloccato: una tessera (<li> dell'elenco ordinato) con titolo, sottotitolo e
+ * l'elenco delle sue Voci. Numero e colore vengono dalla posizione, via CSS (src/style.css).
+ */
+function sezioneDelMenu({ titolo, sottotitolo, voci }) {
+  const tessera = crea('li', undefined, 'menu-sezione');
+  const corpo = crea('div', undefined, 'menu-corpo');
+  const elenco = elencoSenzaPuntini('ul', 'menu-voci');
+  elenco.append(...voci.map(voceDelMenu));
+  corpo.append(crea('h3', titolo), crea('p', sottotitolo, 'menu-sottotitolo'), elenco);
+  tessera.append(corpo);
+  return tessera;
 }
 
 /**
  * La sezione Menù: finché è bloccata mostra solo il teaser con il countdown allo
- * sblocco; dall'istante di sblocco mostra tutte le sezioni (sottotitolo e lista puntata). Si aggiorna sul posto
+ * sblocco; dall'istante di sblocco mostra "Si mangia così" e tutte le sezioni (titolo, sottotitolo e voci con nota)
+ * come tessere numerate. Si aggiorna sul posto
  * (`aggiornaMenu`), quindi passa da teaser a contenuto senza ridisegnare la pagina.
  */
 function sezioneMenu() {
@@ -115,11 +135,13 @@ function sezioneMenu() {
   aggiornaMenu = ({ menu }) => {
     if (menu.sbloccato !== sbloccatoMostrato) {
       sbloccatoMostrato = menu.sbloccato;
-      const titolo = crea('h2', 'Menù');
       if (menu.sbloccato) {
         aggiornaTempo = () => {};
-        sezione.replaceChildren(titolo, ...menu.sezioni.map(sezioneDelMenu));
+        const elenco = elencoSenzaPuntini('ol', 'menu-sezioni');
+        elenco.append(...menu.sezioni.map(sezioneDelMenu));
+        sezione.replaceChildren(crea('h2', 'Si mangia così', 'menu-titolo'), elenco);
       } else {
+        const titolo = crea('h2', 'Menù');
         const { elemento, aggiorna } = creaTempoMancante('Tempo che manca allo sblocco del Menù');
         aggiornaTempo = aggiorna;
         sezione.replaceChildren(titolo, crea('p', 'Il Menù è ancora un segreto. Si sblocca tra:'), elemento);

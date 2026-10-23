@@ -94,6 +94,11 @@ test('gli accenti usati come testo sono leggibili sulla scheda', () => {
   }
 });
 
+test('il testo bianco sulla tessera viola del Menù è leggibile', () => {
+  const palette = leggiPalette();
+  verifica(palette, 'testo bianco su tessera viola', 'carta', 'viola', TESTO_NORMALE);
+});
+
 test('il testo sulle tessere colorate del countdown è leggibile', () => {
   const palette = leggiPalette();
   for (const fondo of ['corallo', 'giallo', 'turchese', 'rosa']) {
