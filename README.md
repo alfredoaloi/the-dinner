@@ -22,11 +22,10 @@ Tutti i contenuti stanno in **un solo file**: [`src/config.js`](src/config.js). 
 - `cena`: data e ora della cena, in un solo campo, con l'offset del fuso Europe/Rome (`+01:00` ora solare, `+02:00` ora legale).
 - `apertura`: da quando l'Invito è aperto. Deve essere 2 settimane prima della cena.
 - `invitati`: per ogni **Invitato** un `nome` e un **Messaggio personalizzato**.
-- `curiosita`: per ogni **Curiosità** un `testo` e una data di `sblocco` esplicita.
 - `menu`: `contenuto` e `sblocco` (1 settimana prima della cena).
 - `messaggioRifiuto` e `messaggioFinale` ("Si mangia!").
 
-I contenuti d'esempio sono **segnaposto** e sono marcati come tali: nel file iniziano con `SEGNAPOSTO:` e, finché `segnaposto: true`, l'Invito mostra in fondo a ogni schermata una nota discreta che lo dice. Sostituiscili e poi metti `segnaposto: false`. I test controllano che le date siano coerenti (apertura, Menù, Curiosità), che ogni offset `+01:00`/`+02:00` sia quello giusto per quel giorno e che i marcatori `SEGNAPOSTO:` spariscano quando metti `segnaposto: false`.
+I contenuti d'esempio sono **segnaposto** e sono marcati come tali: nel file iniziano con `SEGNAPOSTO:` e, finché `segnaposto: true`, l'Invito mostra in fondo a ogni schermata una nota discreta che lo dice. Sostituiscili e poi metti `segnaposto: false`. I test controllano che le date siano coerenti (apertura, Menù), che ogni offset `+01:00`/`+02:00` sia quello giusto per quel giorno e che i marcatori `SEGNAPOSTO:` spariscano quando metti `segnaposto: false`.
 
 ## Da sostituire prima di condividere il link
 
@@ -36,7 +35,6 @@ Tutto in [`src/config.js`](src/config.js). Spunta ogni voce:
 - [ ] **Data di apertura** (`apertura`): esattamente 2 settimane prima della cena.
 - [ ] **Invitati** (`invitati`): i nomi veri, uno principale per persona, senza alias. Due nomi uguali una volta normalizzati bloccano l'Invito.
 - [ ] **Messaggi personalizzati**: un `messaggio` vero per ogni Invitato.
-- [ ] **Curiosità** (`curiosita`): i testi veri, ciascuno con la sua data di `sblocco` tra l'apertura e la cena.
 - [ ] **Menù** (`menu`): il `contenuto` vero e lo `sblocco`, esattamente 1 settimana prima della cena.
 - [ ] **Date di sblocco**: ricontrollale tutte dopo aver cambiato la cena (i test falliscono se non tornano).
 - [ ] **Segnaposto**: togli i `SEGNAPOSTO:` dai testi e metti `segnaposto: false` (così sparisce la nota in fondo alla pagina).

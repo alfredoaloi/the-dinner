@@ -55,7 +55,6 @@ test("ogni istante in config ha l'offset Europe/Rome corretto per quella data", 
     cena: config.cena,
     apertura: config.apertura,
     'menu.sblocco': config.menu.sblocco,
-    ...Object.fromEntries(config.curiosita.map((c, i) => [`curiosita[${i}].sblocco`, c.sblocco])),
   };
   for (const [nome, iso] of Object.entries(istanti)) {
     const scritto = iso.slice(-6);
@@ -71,16 +70,6 @@ test('ogni Invitato ha un nome e un Messaggio personalizzato', () => {
   }
 });
 
-test('ogni Curiosità ha un testo e una data di sblocco esplicita tra apertura e cena', () => {
-  for (const curiosita of config.curiosita) {
-    assert.ok(curiosita.testo.trim().length > 0);
-    assert.match(curiosita.sblocco, ISO_CON_OFFSET_ROMA);
-    const quando = istante(curiosita.sblocco);
-    assert.ok(quando >= istante(config.apertura), "sblocco prima dell'apertura");
-    assert.ok(quando < istante(config.cena), 'sblocco dopo la cena');
-  }
-});
-
 test('il messaggio di rifiuto è fisso e il messaggio finale è "Si mangia!"', () => {
   assert.ok(config.messaggioRifiuto.trim().length > 0);
   assert.equal(config.messaggioFinale, 'Si mangia!');
@@ -89,7 +78,6 @@ test('il messaggio di rifiuto è fisso e il messaggio finale è "Si mangia!"', (
 test('i testi hanno il marcatore SEGNAPOSTO se e solo se config.segnaposto è true', () => {
   const testi = [
     ...config.invitati.map((i) => i.messaggio),
-    ...config.curiosita.map((c) => c.testo),
     config.menu.contenuto,
   ];
   for (const testo of testi) {

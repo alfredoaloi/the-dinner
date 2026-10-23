@@ -2,7 +2,7 @@
 // L'UNICO FILE DI DATI DELL'INVITO
 //
 // Tutto ciò che si cambia per davvero sta qui: data della cena, Invitati,
-// Messaggi personalizzati, Curiosità, Menù e date di sblocco.
+// Messaggi personalizzati, Menù e date di sblocco.
 // Non serve toccare nient'altro.
 //
 // ATTENZIONE: i contenuti qui sotto sono SEGNAPOSTO (campo `segnaposto: true`).
@@ -36,22 +36,6 @@ export const config = {
     {
       nome: 'Giulia Bianchi',
       messaggio: 'SEGNAPOSTO: Giulia, il tuo posto a tavola è già prenotato. Anche il bis.',
-    },
-  ],
-
-  // SEGNAPOSTO: Curiosità, ciascuna con la sua data di sblocco esplicita.
-  curiosita: [
-    {
-      testo: 'SEGNAPOSTO: Prima Curiosità. Il padrone di casa non ha mai bruciato la pasta. Quasi mai.',
-      sblocco: '2026-11-28T20:00:00+01:00',
-    },
-    {
-      testo: 'SEGNAPOSTO: Seconda Curiosità. Il tiramisù è una questione di Stato.',
-      sblocco: '2026-12-02T20:00:00+01:00',
-    },
-    {
-      testo: 'SEGNAPOSTO: Terza Curiosità. Il forno ha un nome, ma non te lo diciamo.',
-      sblocco: '2026-12-08T20:00:00+01:00',
     },
   ],
 

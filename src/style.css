@@ -101,8 +101,8 @@ body {
 /*
  * Cornice di festa. Markup statico in index.html (fuori da #invito): festone in cima,
  * sei palloncini che ondeggiano piano, coriandoli fissi. Tutto aria-hidden, inerte e
- * dietro la scheda (z-index 0 contro 1): non copre mai Ingresso, countdown, Menù o
- * Curiosità. I palloncini e i coriandoli sono fixed, quindi non allargano la pagina.
+ * dietro la scheda (z-index 0 contro 1): non copre mai Ingresso, countdown, Menù.
+ * I palloncini e i coriandoli sono fixed, quindi non allargano la pagina.
  */
 .festa {
   pointer-events: none;
@@ -397,16 +397,14 @@ p {
   border-radius: 0.9rem;
 }
 
-/* Sezioni (Menù, Curiosità) */
-.menu,
-.curiosita {
+/* Sezione Menù */
+.menu {
   margin-top: 1.75rem;
   padding-top: 1rem;
   border-top: 2px dotted var(--linea-morbida);
 }
 
-.menu h2,
-.curiosita h2 {
+.menu h2 {
   margin: 0 0 0.6rem;
   font-family: var(--titoli);
   font-size: 0.95rem;
@@ -416,54 +414,20 @@ p {
   color: var(--corallo-scuro);
 }
 
-.curiosita h2 {
-  color: var(--turchese-scuro);
-}
-
 .menu p {
   margin: 0;
 }
 
-.menu .countdown,
-.teaser-curiosita .countdown {
+.menu .countdown {
   margin-top: 0.6rem;
 }
 
-.menu .countdown .valore,
-.teaser-curiosita .countdown .valore {
+.menu .countdown .valore {
   font-size: 1.35rem;
 }
 
 .menu .countdown-testo {
   font-size: 1.35rem;
-}
-
-.curiosita {
-  text-align: left;
-}
-
-.lista-curiosita {
-  margin: 0;
-  padding-left: 1.25rem;
-}
-
-.lista-curiosita li + li {
-  margin-top: 0.6rem;
-}
-
-.lista-curiosita li::marker {
-  color: var(--rosa-scuro);
-}
-
-.teaser-curiosita {
-  margin-top: 1rem;
-  text-align: center;
-}
-
-.teaser-curiosita p {
-  margin: 0;
-  font-size: 0.9rem;
-  color: var(--tenue);
 }
 
 /* L'Ingresso: campo del nome con etichetta */
