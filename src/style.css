@@ -230,7 +230,8 @@ body {
   z-index: 1; /* sopra la cornice di festa */
   width: 100%;
   max-width: 34rem;
-  padding: 1.75rem 1.1rem 1.25rem;
+  --scheda-padding: 1.1rem; /* respiro ai lati: le tessere del Menù lo usano per sporgere fino ai bordi */
+  padding: 1.75rem var(--scheda-padding) 1.25rem;
   text-align: center;
   line-height: 1.5;
   background: var(--carta);
@@ -451,8 +452,8 @@ p {
   grid-template-columns: auto minmax(0, 1fr);
   column-gap: 0.9rem;
   align-items: start;
-  /* poco più larga della scheda (padding 1.1rem + bordo 2px): arriva ai bordi come un adesivo */
-  margin: 0 -1.4rem;
+  /* poco più larga della scheda (padding + bordo 2px + un filo): arriva ai bordi come un adesivo */
+  margin: 0 calc(-1 * (var(--scheda-padding) + 0.3rem));
   padding: 1rem 1.5rem 1.1rem 1.4rem;
   color: var(--tessera-testo);
   background: var(--tessera-fondo);
