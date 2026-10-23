@@ -27,6 +27,7 @@ const memoria = creaMemoria(() => window.localStorage);
 let nomeScritto = memoria.leggi();
 let nomeDaMemoria = nomeScritto !== undefined; // il nome viene dal browser, non dall'Ingresso di questa visita
 let tentativo = 0;
+let scoppioFatto = false; // lo scoppio di coriandoli parte al massimo una volta per caricamento della pagina
 let chiaveDisegnata;
 let aggiornaCountdown = () => {};
 let aggiornaMenu = () => {};
@@ -37,6 +38,52 @@ function crea(tag, testo, classe) {
   if (testo !== undefined) el.textContent = testo;
   if (classe) el.className = classe;
   return el;
+}
+
+// Scoppio di coriandoli: quanti pezzi e come si aprono.
+const PEZZI_SCOPPIO = 32;
+const CLASSI_COLORE = 5; // classi colore .c0–.c4 di .pezzo in src/style.css: se ne aggiungi una lì, alza questo numero
+const FORMA_TONDA_OGNI = 3; // un pezzo ogni tre è tondo (classe .tondo), gli altri sono rettangolini
+const ANGOLO_MIN_GRADI = -160; // il ventaglio va da -160 a -20 gradi: verso l'alto (y cresce verso il basso)
+const ANGOLO_AMPIEZZA_GRADI = 140;
+const DISTANZA_MIN_VMIN = 18; // fin dove arriva il pezzo, in vmin: resta dentro lo schermo
+const DISTANZA_EXTRA_VMIN = 32; // casuale in più, sopra il minimo
+const CADUTA_MIN_VMIN = 14; // di quanto cala il pezzo nell'ultima parte dell'animazione
+const CADUTA_EXTRA_VMIN = 12;
+const GIRO_TOTALE_GRADI = 900; // il pezzo ruota a caso tra -450 e +450 gradi
+const DURATA_MIN_S = 1.3; // durata dell'animazione di un pezzo (--durata-pezzo in style.css)
+const DURATA_EXTRA_S = 0.6;
+const RETE_DI_SICUREZZA_MS = 3000; // oltre la durata massima: toglie i pezzi se animationend non arriva
+
+/**
+ * Lo scoppio di coriandoli all'Ingresso riuscito: una sola volta per caricamento della pagina,
+ * mai con il movimento ridotto. I pezzi vanno nello strato statico `.scoppio` (index.html), che
+ * non è nella scheda ridisegnata, e vengono tolti appena finiscono l'animazione.
+ */
+function scoppio() {
+  if (scoppioFatto) return;
+  scoppioFatto = true;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const strato = document.querySelector('.scoppio');
+  if (!strato) return;
+
+  const pezzi = [];
+  for (let i = 0; i < PEZZI_SCOPPIO; i += 1) {
+    const angolo = (ANGOLO_MIN_GRADI + Math.random() * ANGOLO_AMPIEZZA_GRADI) * (Math.PI / 180);
+    const distanza = DISTANZA_MIN_VMIN + Math.random() * DISTANZA_EXTRA_VMIN;
+    const colore = `c${i % CLASSI_COLORE}`;
+    const forma = i % FORMA_TONDA_OGNI === 0 ? ' tondo' : '';
+    const pezzo = crea('span', undefined, `pezzo ${colore}${forma}`);
+    pezzo.style.setProperty('--dx', `${(Math.cos(angolo) * distanza).toFixed(1)}vmin`);
+    pezzo.style.setProperty('--dy', `${(Math.sin(angolo) * distanza).toFixed(1)}vmin`);
+    pezzo.style.setProperty('--caduta', `${(CADUTA_MIN_VMIN + Math.random() * CADUTA_EXTRA_VMIN).toFixed(1)}vmin`);
+    pezzo.style.setProperty('--giro', `${Math.round((Math.random() - 0.5) * GIRO_TOTALE_GRADI)}deg`);
+    pezzo.style.setProperty('--durata-pezzo', `${(DURATA_MIN_S + Math.random() * DURATA_EXTRA_S).toFixed(2)}s`);
+    pezzo.addEventListener('animationend', () => pezzo.remove(), { once: true });
+    pezzi.push(pezzo);
+  }
+  strato.append(...pezzi);
+  setTimeout(() => pezzi.forEach((pezzo) => pezzo.remove()), RETE_DI_SICUREZZA_MS);
 }
 
 /** Un countdown che si aggiorna sul posto; `leggi(vista)` restituisce il Tempo (o il testo finale) da mostrare. */
@@ -150,12 +197,12 @@ function sezioneCuriosita() {
   return sezione;
 }
 
-/** La riga di stato in alto: spia, etichetta "Area riservata" e un timbro che dice a che punto siamo. */
+/** La riga di stato in alto: spia, etichetta "Lista invitati" e un timbro che dice a che punto siamo. */
 function rigaDiStato(testoTimbro, riconosciuto = false) {
   const spia = crea('span', undefined, 'spia');
   spia.setAttribute('aria-hidden', 'true');
   const etichetta = crea('p', undefined, 'etichetta');
-  etichetta.append(spia, 'Area riservata');
+  etichetta.append(spia, 'Lista invitati');
   const timbro = crea('p', testoTimbro, riconosciuto ? 'timbro timbro-ok' : 'timbro');
   const riga = crea('div', undefined, 'stato');
   riga.append(etichetta, timbro);
@@ -173,30 +220,30 @@ function notaSegnaposto() {
 
 function disegnaVista(vista) {
   const titolo = crea('h1', 'Un invito a cena');
-  const contenuto = [titolo];
+  const contenuto = [titolo, crea('p', 'per festeggiare il mio compleanno', 'sottotitolo')];
   let riga;
   let campoDaFocalizzare;
 
   switch (vista.kind) {
     case 'chiuso':
-      riga = rigaDiStato('Ingresso chiuso');
+      riga = rigaDiStato('Ancora chiuso');
       contenuto.push(
-        crea('p', "L'Invito non è ancora aperto: gli addetti stanno ancora apparecchiando."),
+        crea('p', "L'Invito non è ancora aperto: stiamo ancora gonfiando i palloncini."),
         crea('p', 'Torna tra:', 'didascalia'),
         countdown("Tempo che manca all'apertura dell'Invito", (v) => v.mancaAllApertura),
       );
       break;
     case 'ingresso':
     case 'rifiutato': {
-      riga = rigaDiStato(vista.kind === 'rifiutato' ? 'Non in lista' : 'Solo amici');
-      contenuto.push(crea('p', 'Area a numero chiuso. Scrivi il tuo nome per entrare: niente password, ci fidiamo (quasi).'));
+      riga = rigaDiStato(vista.kind === 'rifiutato' ? 'Non in lista' : 'Solo invitati');
+      contenuto.push(crea('p', 'Festa a numero chiuso. Scrivi il tuo nome per entrare: niente password, ci fidiamo (quasi).'));
       const { form, campo } = modulo(vista.kind === 'rifiutato' ? vista.messaggio : undefined);
       contenuto.push(form);
       campoDaFocalizzare = campo;
       break;
     }
     case 'dentro': {
-      riga = rigaDiStato('Ingresso consentito', true);
+      riga = rigaDiStato('Sei in lista!', true);
       const didascalia = crea('p', 'Alla cena mancano:', 'didascalia');
       const conto = countdown('Tempo che manca alla cena', (v) => (v.cena.siMangia ? v.cena.messaggio : v.cena.manca));
       const aggiornaTempoCena = aggiornaCountdown;
@@ -230,6 +277,7 @@ function disegna(dopoTentativo = false) {
   }
   if (vista.kind === 'dentro' && dopoTentativo && !nomeDaMemoria) {
     memoria.salva(nomeScritto); // solo dopo un Ingresso riuscito
+    scoppio(); // e solo qui: un nome ricordato o il tick non lo fanno partire
   }
   const chiave = `${vista.kind}:${vista.kind === 'dentro' ? vista.messaggio : tentativo}`;
   if (chiave !== chiaveDisegnata) {
