@@ -24,6 +24,14 @@ _Avoid_: Login, accesso, autenticazione
 Il testo mostrato a un Invitato dopo l'Ingresso, diverso per ognuno.
 _Avoid_: Saluto, benvenuto
 
-**Curiosità**:
-Una singola voce della sezione omonima.
-_Avoid_: Fun fact, trivia
+**Apertura**:
+L'istante in cui l'Invito smette di essere chiuso e l'Invitato può passare dall'Ingresso. Prima, l'Invito mostra solo il countdown all'Apertura. Si esprime in giorni prima della cena.
+_Avoid_: Lancio, apertura del sito
+
+**Menù**:
+La sezione, visibile solo a un Invitato entrato, che elenca cosa si mangia e si beve. Resta un teaser con countdown fino allo Sblocco.
+_Avoid_: Carta, programma
+
+**Sblocco**:
+L'istante in cui il Menù passa da teaser a contenuto. Si esprime in giorni prima della cena, alla stessa ora della cena.
+_Avoid_: Rivelazione, uscita
