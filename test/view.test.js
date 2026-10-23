@@ -6,9 +6,16 @@ import { config as configReale } from '../src/config.js';
 
 // Sezioni del Menù di prova: stesse nella configurazione di prova e nelle attese.
 const SEZIONI = [
-  { titolo: 'Antipasti', voci: ['Bruschette', 'Olive'] },
-  { titolo: 'Primo', voci: ['Tagliatelle al ragù'] },
-  { titolo: 'Dolce', voci: ['Tiramisù'] },
+  {
+    titolo: 'Antipasti',
+    sottotitolo: 'si comincia',
+    voci: [
+      { nome: 'Bruschette', nota: 'Croccanti.' },
+      { nome: 'Olive', nota: 'Con il nocciolo.' },
+    ],
+  },
+  { titolo: 'Primo', sottotitolo: 'il piatto caldo', voci: [{ nome: 'Tagliatelle al ragù', nota: 'Fatte a mano.' }] },
+  { titolo: 'Dolce', sottotitolo: 'chi lascia, perde', voci: [{ nome: 'Tiramisù', nota: 'Il caffè è vero.' }] },
 ];
 
 // Configurazione di prova, indipendente dai contenuti reali dell'Invito.
@@ -200,8 +207,8 @@ test('prima dello sblocco il Menù mostra solo il tempo mancante allo sblocco, s
   const view = computeView(config, ora, 'Mario Rossi');
   assert.deepEqual(view.menu, { sbloccato: false, manca: { giorni: 2, ore: 3, minuti: 4, secondi: 5 } });
   const esposto = JSON.stringify(view);
-  for (const { titolo, voci } of SEZIONI) {
-    for (const testo of [titolo, ...voci]) {
+  for (const { titolo, sottotitolo, voci } of SEZIONI) {
+    for (const testo of [titolo, sottotitolo, ...voci.flatMap(({ nome, nota }) => [nome, nota])]) {
       assert.ok(!esposto.includes(testo), `"${testo}" esposto con il Menù bloccato`);
     }
   }
@@ -223,13 +230,23 @@ test("all'istante di sblocco e subito dopo il Menù mostra tutte le sezioni, nel
 
 test("le sezioni del Menù seguono l'ordine della configurazione, non quello alfabetico", () => {
   const ordine = [
-    { titolo: 'Dolce', voci: ['Torta'] },
-    { titolo: 'Aperitivo', voci: ['Patatine', 'Taralli'] },
+    { titolo: 'Dolce', sottotitolo: 'chi lascia, perde', voci: [{ nome: 'Torta', nota: 'Di nonna.' }] },
+    {
+      titolo: 'Aperitivo',
+      sottotitolo: 'per ingannare l\'attesa',
+      voci: [
+        { nome: 'Patatine', nota: 'Si comincia bassi.' },
+        { nome: 'Taralli', nota: 'Uno tira l\'altro.' },
+      ],
+    },
   ];
   const invertito = { ...config, menu: { ...config.menu, contenuto: ordine } };
   const { menu } = computeView(invertito, SBLOCCO_MENU, 'Mario Rossi');
   assert.deepEqual(menu.sezioni.map((s) => s.titolo), ['Dolce', 'Aperitivo']);
-  assert.deepEqual(menu.sezioni[1].voci, ['Patatine', 'Taralli']);
+  assert.deepEqual(
+    menu.sezioni[1].voci.map((v) => v.nome),
+    ['Patatine', 'Taralli'],
+  );
 });
 
 test('il Menù resta sbloccato fino alla cena e dopo', () => {
@@ -301,29 +318,75 @@ test('il Menù reale è teaser fino a venerdì 30/10 alle 20:00 e sbloccato da l
   }
 });
 
-test("il Menù reale sbloccato mostra tutte le sezioni e le voci concordate, nell'ordine", () => {
+test("il Menù reale sbloccato mostra tutte le sezioni, voci e note concordate, nell'ordine", () => {
   const { menu } = computeView(configReale, SBLOCCO_REALE, 'Mauro');
   assert.deepEqual(menu.sezioni, [
-    { titolo: 'Aperitivo', voci: ['Patatine', 'Taralli'] },
+    {
+      titolo: 'Aperitivo',
+      sottotitolo: "per ingannare l'attesa",
+      voci: [
+        { nome: 'Patatine', nota: 'Il minimo sindacale. Si comincia bassi.' },
+        { nome: 'Taralli', nota: "Pericolo: uno tira l'altro." },
+      ],
+    },
     {
       titolo: 'Antipasti',
+      sottotitolo: 'il round più lungo',
       voci: [
-        'Focaccia bianca',
-        'Soppressata',
-        'Caciocavallo',
-        'Melanzane e zucchine grigliate e condite con menta',
-        'Polenta nel forno con maionese',
-        'Polpette di verdure con maionese',
-        'Bicchierini di riso Venere con verdurine e gamberetti',
+        { nome: 'Focaccia bianca', nota: 'Qui si capisce chi è venuto per mangiare davvero.' },
+        { nome: 'Soppressata', nota: "Graziana, questa è tutta tua: è l'unica carne della serata." },
+        {
+          nome: 'Caciocavallo',
+          nota: "Malvina: qui c'è caseina, guardalo da lontano. Tutti gli altri: felicità.",
+        },
+        {
+          nome: 'Melanzane e zucchine grigliate e condite con menta',
+          nota: 'Verdura, ma con la menta: quindi è raffinata.',
+        },
+        { nome: 'Polenta nel forno con maionese', nota: 'La maionese è un gruppo alimentare.' },
+        {
+          nome: 'Polpette di verdure con maionese',
+          nota: 'Sì, ancora maionese. Nessuno ha chiesto se bastasse.',
+        },
+        {
+          nome: 'Bicchierini di riso Venere con verdurine e gamberetti',
+          nota: "Quello da foto. Mangiatelo prima che si sgonfi l'hype.",
+        },
       ],
     },
     {
       titolo: 'Secondo',
-      voci: ['Spiedini di calamari gratinati al forno con contorno di polpette di patate'],
+      sottotitolo: 'il piatto forte',
+      voci: [
+        {
+          nome: 'Spiedini di calamari gratinati al forno con contorno di polpette di patate',
+          nota: 'Il pezzo forte. Non è carne, è mare: vale lo stesso.',
+        },
+      ],
     },
-    { titolo: 'Dolce', voci: ['Crostata di mele cotogne'] },
-    { titolo: 'Bevande', voci: ['Vino bianco', 'Prosecco (con il dolce)'] },
+    {
+      titolo: 'Dolce',
+      sottotitolo: 'chi lascia, perde',
+      voci: [{ nome: 'Crostata di mele cotogne', nota: 'Cotta bene, che da crude le cotogne non perdonano.' }],
+    },
+    {
+      titolo: 'Bevande',
+      sottotitolo: 'per annaffiare il tutto',
+      voci: [
+        { nome: 'Vino bianco', nota: "Lorenzo: sì, ce l'abbiamo." },
+        { nome: 'Prosecco (con il dolce)', nota: 'Arriva col dolce. Chi lo stappa prima sta fuori.' },
+      ],
+    },
   ]);
+});
+
+test('prima dello Sblocco il Menù reale non espone nessun titolo, sottotitolo, nome o nota', () => {
+  const esposto = JSON.stringify(computeView(configReale, SBLOCCO_REALE - 1000, 'Mauro'));
+  for (const { titolo, sottotitolo, voci } of configReale.menu.contenuto) {
+    for (const testo of [titolo, sottotitolo, ...voci.flatMap(({ nome, nota }) => [nome, nota])]) {
+      assert.ok(!esposto.includes(testo), `"${testo}" esposto con il Menù bloccato`);
+    }
+  }
 });
 
 test('dalla cena reale in poi c\'è solo "Si mangia!"', () => {
@@ -372,14 +435,27 @@ test('la vista di un Invitato dentro non ha più il campo curiosita', () => {
   assert.equal('curiosita' in computeView(config, DOPO_APERTURA, 'Mario Rossi'), false);
 });
 
-test('una sezione del Menù senza titolo, senza voci o con voci vuote fa fallire la configurazione con un errore chiaro', () => {
+test('un Menù incompleto o nel vecchio formato fa fallire la configurazione con un errore chiaro', () => {
+  const voce = { nome: 'Olive', nota: 'Con il nocciolo.' };
+  const sezioneValida = { titolo: 'Antipasti', sottotitolo: 'si comincia', voci: [voce] };
   const sezioniNonValide = {
-    'titolo mancante': [{ voci: ['Olive'] }],
-    'titolo vuoto': [{ titolo: '   ', voci: ['Olive'] }],
-    'voci mancanti': [{ titolo: 'Antipasti' }],
-    'nessuna voce': [{ titolo: 'Antipasti', voci: [] }],
-    'solo voci vuote': [{ titolo: 'Antipasti', voci: ['', '  '] }],
-    'una voce vuota tra le altre': [{ titolo: 'Antipasti', voci: ['Olive', ' '] }],
+    'titolo mancante': [{ sottotitolo: 'si comincia', voci: [voce] }],
+    'titolo vuoto': [{ ...sezioneValida, titolo: '   ' }],
+    'sottotitolo mancante': [{ titolo: 'Antipasti', voci: [voce] }],
+    'sottotitolo vuoto': [{ ...sezioneValida, sottotitolo: '' }],
+    'sottotitolo solo spazi': [{ ...sezioneValida, sottotitolo: '   ' }],
+    'voci mancanti': [{ titolo: 'Antipasti', sottotitolo: 'si comincia' }],
+    'nessuna voce': [{ ...sezioneValida, voci: [] }],
+    'voce a stringa semplice (vecchio formato)': [{ ...sezioneValida, voci: ['Olive'] }],
+    'voce a stringa tra voci valide': [{ ...sezioneValida, voci: [voce, 'Bruschette'] }],
+    'voce senza nome': [{ ...sezioneValida, voci: [{ nota: 'Con il nocciolo.' }] }],
+    'voce con nome vuoto': [{ ...sezioneValida, voci: [{ nome: '', nota: 'Con il nocciolo.' }] }],
+    'voce senza nota': [{ ...sezioneValida, voci: [{ nome: 'Olive' }] }],
+    'voce con nota vuota': [{ ...sezioneValida, voci: [{ nome: 'Olive', nota: '  ' }] }],
+    'voce con nome che non è testo': [{ ...sezioneValida, voci: [{ nome: 42, nota: 'Con il nocciolo.' }] }],
+    'voce nulla': [{ ...sezioneValida, voci: [null] }],
+    'sezione nulla': [null],
+    'una sezione valida e una incompleta': [sezioneValida, { titolo: 'Dolce', voci: [voce] }],
     'contenuto senza sezioni': [],
     'contenuto stringa': 'Tagliatelle',
   };
@@ -389,6 +465,25 @@ test('una sezione del Menù senza titolo, senza voci o con voci vuote fa fallire
       assert.throws(() => computeView(nonValida, ora, 'Mario Rossi'), /Menù/, caso);
     }
   }
+});
+
+test("l'errore sul Menù nomina la sezione e la voce incomplete", () => {
+  const voce = { nome: 'Olive', nota: 'Con il nocciolo.' };
+  const conContenuto = (contenuto) => ({ ...config, menu: { ...config.menu, contenuto } });
+  const errore = (contenuto) => {
+    try {
+      computeView(conContenuto(contenuto), DOPO_APERTURA, 'Mario Rossi');
+    } catch (e) {
+      return e.message;
+    }
+    assert.fail('la configurazione doveva essere rifiutata');
+  };
+  assert.match(errore([{ titolo: 'Antipasti', voci: [voce] }]), /Antipasti.*sottotitolo/);
+  assert.match(errore([{ titolo: 'Dolce', sottotitolo: 'x', voci: [voce] }, { titolo: 'Bevande', voci: [voce] }]), /Bevande/);
+  assert.match(errore([{ titolo: 'Antipasti', sottotitolo: 'x', voci: ['Olive'] }]), /voce 1.*Antipasti/);
+  assert.match(errore([{ titolo: 'Antipasti', sottotitolo: 'x', voci: [voce, { nome: 'Pane' }] }]), /voce "Pane".*Antipasti.*nota/);
+  assert.match(errore([{ titolo: 'Antipasti', sottotitolo: 'x', voci: [voce, { nota: 'Ciao' }] }]), /voce 2.*Antipasti.*nome/);
+  assert.match(errore([{ sottotitolo: 'x', voci: [voce] }]), /sezione 1.*titolo/);
 });
 
 test("l'Apertura e lo Sblocco senza giorniPrima intero fanno fallire la configurazione con un errore chiaro", () => {

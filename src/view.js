@@ -14,7 +14,7 @@
 //   { kind: 'dentro', messaggio, cena: { siMangia: false, manca: Tempo }
 //                                    | { siMangia: true, messaggio },
 //                     menu: { sbloccato: false, manca: Tempo }
-//                         | { sbloccato: true, sezioni: [{ titolo, voci: [testo] }] } }
+//                         | { sbloccato: true, sezioni: [{ titolo, sottotitolo, voci: [{ nome, nota }] }] } }
 // dove Tempo = { giorni, ore, minuti, secondi }, mai negativo.
 
 /**
@@ -100,22 +100,43 @@ function statoMenu(config, adesso) {
 
 const testoNonVuoto = (testo) => typeof testo === 'string' && testo.trim() !== '';
 
-/** Lancia un errore chiaro se il Menù non è una lista di sezioni, ognuna con titolo e almeno una voce non vuota. */
+/** Lancia un errore chiaro se una voce del Menù non è `{ nome, nota }` con entrambi i testi non vuoti. */
+function verificaVoce(voce, posto, titoloSezione) {
+  const dove = `della sezione "${titoloSezione}" del Menù`;
+  const nomeVoce = testoNonVuoto(voce?.nome) ? `"${voce.nome}"` : `${posto + 1}`;
+  if (voce === null || typeof voce !== 'object' || Array.isArray(voce)) {
+    throw new Error(
+      `Configurazione non valida: la voce ${posto + 1} ${dove} deve avere un nome e una nota (non basta il solo testo).`,
+    );
+  }
+  if (!testoNonVuoto(voce.nome)) {
+    throw new Error(`Configurazione non valida: la voce ${posto + 1} ${dove} non ha un nome.`);
+  }
+  if (!testoNonVuoto(voce.nota)) {
+    throw new Error(`Configurazione non valida: la voce ${nomeVoce} ${dove} non ha una nota.`);
+  }
+}
+
+/** Lancia un errore chiaro se il Menù non è una lista di sezioni, ognuna con titolo, sottotitolo e voci (nome e nota) non vuoti. */
 function verificaMenu(menu) {
   const sezioni = menu.contenuto;
   if (!Array.isArray(sezioni) || sezioni.length === 0) {
-    throw new Error('Configurazione non valida: il Menù deve essere una lista di almeno una sezione, ognuna con titolo e voci.');
+    throw new Error(
+      'Configurazione non valida: il Menù deve essere una lista di almeno una sezione, ognuna con titolo, sottotitolo e voci.',
+    );
   }
   sezioni.forEach((sezione, posto) => {
     if (!testoNonVuoto(sezione?.titolo)) {
       throw new Error(`Configurazione non valida: la sezione ${posto + 1} del Menù non ha un titolo.`);
     }
-    const voci = sezione.voci;
-    if (!Array.isArray(voci) || voci.length === 0 || !voci.every(testoNonVuoto)) {
-      throw new Error(
-        `Configurazione non valida: la sezione "${sezione.titolo}" del Menù deve avere almeno una voce, e nessuna voce vuota.`,
-      );
+    if (!testoNonVuoto(sezione.sottotitolo)) {
+      throw new Error(`Configurazione non valida: la sezione "${sezione.titolo}" del Menù non ha un sottotitolo.`);
     }
+    const voci = sezione.voci;
+    if (!Array.isArray(voci) || voci.length === 0) {
+      throw new Error(`Configurazione non valida: la sezione "${sezione.titolo}" del Menù deve avere almeno una voce.`);
+    }
+    voci.forEach((voce, posto) => verificaVoce(voce, posto, sezione.titolo));
   });
 }
 
