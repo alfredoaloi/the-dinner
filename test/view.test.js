@@ -4,6 +4,13 @@ import assert from 'node:assert/strict';
 import { computeView } from '../src/view.js';
 import { config as configReale } from '../src/config.js';
 
+// Sezioni del Menù di prova: stesse nella configurazione di prova e nelle attese.
+const SEZIONI = [
+  { titolo: 'Antipasti', voci: ['Bruschette', 'Olive'] },
+  { titolo: 'Primo', voci: ['Tagliatelle al ragù'] },
+  { titolo: 'Dolce', voci: ['Tiramisù'] },
+];
+
 // Configurazione di prova, indipendente dai contenuti reali dell'Invito.
 const config = {
   cena: '2030-06-15T20:00:00+02:00',
@@ -13,11 +20,7 @@ const config = {
     { nome: 'Àgata Müller', messaggio: 'Ciao Àgata' },
   ],
   menu: {
-    contenuto: [
-      { titolo: 'Antipasti', voci: ['Bruschette', 'Olive'] },
-      { titolo: 'Primo', voci: ['Tagliatelle al ragù'] },
-      { titolo: 'Dolce', voci: ['Tiramisù'] },
-    ],
+    contenuto: SEZIONI,
     sblocco: { giorniPrima: 3 },
   },
   messaggioRifiuto: 'Non risulti in lista.',
@@ -29,11 +32,6 @@ const APERTURA = Date.parse('2030-06-08T20:00:00+02:00');
 const CENA = Date.parse(config.cena);
 const SBLOCCO_MENU = Date.parse('2030-06-12T20:00:00+02:00');
 const DOPO_APERTURA = APERTURA + 60_000;
-const SEZIONI = [
-  { titolo: 'Antipasti', voci: ['Bruschette', 'Olive'] },
-  { titolo: 'Primo', voci: ['Tagliatelle al ragù'] },
-  { titolo: 'Dolce', voci: ['Tiramisù'] },
-];
 
 test("prima dell'apertura l'Invito è chiuso e dice quanto manca all'apertura", () => {
   const ora = APERTURA - (3 * 86400 + 4 * 3600 + 5 * 60 + 6) * 1000;
@@ -391,4 +389,18 @@ test('una sezione del Menù senza titolo, senza voci o con voci vuote fa fallire
       assert.throws(() => computeView(nonValida, ora, 'Mario Rossi'), /Menù/, caso);
     }
   }
+});
+
+test("l'Apertura e lo Sblocco senza giorniPrima intero fanno fallire la configurazione con un errore chiaro", () => {
+  for (const valore of [undefined, null, '7', 7.5, NaN, Infinity]) {
+    const senzaApertura = { ...config, apertura: { giorniPrima: valore } };
+    const senzaSblocco = { ...config, menu: { ...config.menu, sblocco: { giorniPrima: valore } } };
+    for (const ora of [APERTURA - 1000, DOPO_APERTURA, SBLOCCO_MENU]) {
+      assert.throws(() => computeView(senzaApertura, ora, 'Mario Rossi'), /Apertura.*giorniPrima/, `apertura ${valore}`);
+      assert.throws(() => computeView(senzaSblocco, ora, 'Mario Rossi'), /Sblocco.*giorniPrima/, `sblocco ${valore}`);
+    }
+  }
+  assert.throws(() => computeView({ ...config, apertura: undefined }, DOPO_APERTURA, undefined), /Apertura.*giorniPrima/);
+  const menuSenzaSblocco = { ...config, menu: { contenuto: config.menu.contenuto } };
+  assert.throws(() => computeView(menuSenzaSblocco, DOPO_APERTURA, undefined), /Sblocco.*giorniPrima/);
 });

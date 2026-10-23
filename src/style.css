@@ -19,7 +19,7 @@
  *   focus su carta 6.9, su carta-alta 6.6, su sfondo 6.4: anello del focus, servono 3:1
  *   negato su negato-sfondo 5.7 (negato su carta 6.5): messaggio di rifiuto
  *   viola su carta 6.9 (su carta-alta 6.6)   corallo-scuro su carta 5.3
- *   turchese-scuro su carta 6.1               rosa-scuro su carta 5.9
+ *   turchese-scuro su carta 6.1
  *   testo sulle tessere del countdown: corallo 5.3, giallo 9.7, turchese 6.9, rosa 6.3
  * Gli accenti vivaci (corallo, giallo, turchese, rosa) NON bastano come testo su
  * bianco (corallo 2.8:1, giallo 1.5, turchese 2.2, rosa 2.4): sono solo decorazione
@@ -60,7 +60,6 @@
   /* accenti abbastanza scuri da essere testo normale su bianco */
   --corallo-scuro: #c8321f;
   --turchese-scuro: #0b6e65;
-  --rosa-scuro: #c2185b;
 
   --bottone: #ff6b5b;
   --su-bottone: #1c2352;

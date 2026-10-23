@@ -8,7 +8,7 @@
 // ATTENZIONE: il repository è pubblico, quindi anche questo file lo è.
 // Non scrivere qui l'indirizzo di casa né nulla che non vuoi far leggere.
 //
-// Apertura e Sblocco del Menù si scrivono come `giorniPrima` (intero) la cena.
+// Apertura e Sblocco del Menù si scrivono come `giorniPrima`: un numero intero di giorni prima della cena.
 // La data della cena è ISO 8601 con offset esplicito del fuso Europe/Rome:
 //   +01:00 = ora solare (da fine ottobre a fine marzo)
 //   +02:00 = ora legale (da fine marzo a fine ottobre)

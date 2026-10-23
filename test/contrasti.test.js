@@ -89,7 +89,7 @@ test("il messaggio di rifiuto è leggibile e il suo bordo si vede", () => {
 
 test('gli accenti usati come testo sono leggibili sulla scheda', () => {
   const palette = leggiPalette();
-  for (const accento of ['viola', 'corallo-scuro', 'turchese-scuro', 'rosa-scuro']) {
+  for (const accento of ['viola', 'corallo-scuro', 'turchese-scuro']) {
     verifica(palette, `accento ${accento} usato come testo`, accento, 'carta', TESTO_NORMALE);
   }
 });

@@ -79,7 +79,7 @@ test('nessun testo né chiave della configurazione contiene SEGNAPOSTO, e il fla
   assert.equal('segnaposto' in config, false);
 });
 
-test('non esistono più le Curiosità in configurazione', () => {
+test('il campo curiosita non esiste più in configurazione', () => {
   assert.equal('curiosita' in config, false);
 });
 
