@@ -22,10 +22,23 @@ Tutti i contenuti stanno in **un solo file**: [`src/config.js`](src/config.js). 
 - `cena`: data e ora della cena, in un solo campo, con l'offset del fuso Europe/Rome (`+01:00` ora solare, `+02:00` ora legale).
 - `apertura`: da quando l'Invito è aperto. Deve essere 2 settimane prima della cena.
 - `invitati`: per ogni **Invitato** un `nome` e un **Messaggio personalizzato**.
-- `menu`: `contenuto` e `sblocco` (1 settimana prima della cena).
+- `menu`: `contenuto` (le sezioni del Menù, vedi sotto) e `sblocco` (1 settimana prima della cena).
 - `messaggioRifiuto` e `messaggioFinale` ("Si mangia!").
 
 I contenuti d'esempio sono **segnaposto** e sono marcati come tali: nel file iniziano con `SEGNAPOSTO:` e, finché `segnaposto: true`, l'Invito mostra in fondo a ogni schermata una nota discreta che lo dice. Sostituiscili e poi metti `segnaposto: false`. I test controllano che le date siano coerenti (apertura, Menù), che ogni offset `+01:00`/`+02:00` sia quello giusto per quel giorno e che i marcatori `SEGNAPOSTO:` spariscano quando metti `segnaposto: false`.
+
+### Il Menù a sezioni
+
+`menu.contenuto` è una lista **ordinata** di sezioni (Aperitivo, Antipasti, Secondo, Dolce, Bevande...). Ogni sezione ha un `titolo` e una lista di `voci`:
+
+```js
+contenuto: [
+  { titolo: 'Antipasti', voci: ['Focaccia bianca', 'Soppressata'] },
+  { titolo: 'Dolce', voci: ['Crostata di mele cotogne'] },
+],
+```
+
+Dallo **Sblocco** l'Invitato dentro vede tutte le sezioni insieme, nell'ordine in cui le scrivi: ogni sezione è un sottotitolo con le sue voci in un elenco puntato. Prima dello Sblocco vede solo il teaser con il tempo mancante: né titoli né voci arrivano alla pagina. Se una sezione non ha un titolo o non ha almeno una voce non vuota, l'Invito non parte e mostra un errore chiaro.
 
 ## Da sostituire prima di condividere il link
 
@@ -35,7 +48,7 @@ Tutto in [`src/config.js`](src/config.js). Spunta ogni voce:
 - [ ] **Data di apertura** (`apertura`): esattamente 2 settimane prima della cena.
 - [ ] **Invitati** (`invitati`): i nomi veri, uno principale per persona, senza alias. Due nomi uguali una volta normalizzati bloccano l'Invito.
 - [ ] **Messaggi personalizzati**: un `messaggio` vero per ogni Invitato.
-- [ ] **Menù** (`menu`): il `contenuto` vero e lo `sblocco`, esattamente 1 settimana prima della cena.
+- [ ] **Menù** (`menu`): le sezioni vere in `contenuto` (ognuna con `titolo` e `voci`) e lo `sblocco`, esattamente 1 settimana prima della cena.
 - [ ] **Date di sblocco**: ricontrollale tutte dopo aver cambiato la cena (i test falliscono se non tornano).
 - [ ] **Segnaposto**: togli i `SEGNAPOSTO:` dai testi e metti `segnaposto: false` (così sparisce la nota in fondo alla pagina).
 - [ ] Prova ogni fase con `?now=` (vedi sotto), poi `npm test`.

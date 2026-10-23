@@ -13,7 +13,7 @@
 //   { kind: 'dentro', messaggio, cena: { siMangia: false, manca: Tempo }
 //                                    | { siMangia: true, messaggio },
 //                     menu: { sbloccato: false, manca: Tempo }
-//                         | { sbloccato: true, contenuto } }
+//                         | { sbloccato: true, sezioni: [{ titolo, voci: [testo] }] } }
 // dove Tempo = { giorni, ore, minuti, secondi }, mai negativo.
 
 /**
@@ -52,17 +52,39 @@ function statoCena(config, adesso) {
   return { siMangia: false, manca: tempoMancante(cena - adesso) };
 }
 
-/** Stato del Menù: solo il tempo mancante allo sblocco, poi (dall'istante di sblocco in poi) il contenuto. */
+/** Stato del Menù: solo il tempo mancante allo sblocco, poi (dall'istante di sblocco in poi) tutte le sezioni insieme. */
 function statoMenu(config, adesso) {
   const sblocco = Date.parse(config.menu.sblocco);
   if (adesso >= sblocco) {
-    return { sbloccato: true, contenuto: config.menu.contenuto };
+    return { sbloccato: true, sezioni: config.menu.contenuto };
   }
   return { sbloccato: false, manca: tempoMancante(sblocco - adesso) };
 }
 
-/** Lancia un errore chiaro se due Invitati hanno lo stesso nome normalizzato. */
+const èTestoNonVuoto = (testo) => typeof testo === 'string' && testo.trim() !== '';
+
+/** Lancia un errore chiaro se il Menù non è una lista di sezioni, ognuna con titolo e almeno una voce non vuota. */
+function verificaMenu(menu) {
+  const sezioni = menu.contenuto;
+  if (!Array.isArray(sezioni) || sezioni.length === 0) {
+    throw new Error('Configurazione non valida: il Menù deve essere una lista di almeno una sezione, ognuna con titolo e voci.');
+  }
+  sezioni.forEach((sezione, posto) => {
+    if (!èTestoNonVuoto(sezione?.titolo)) {
+      throw new Error(`Configurazione non valida: la sezione ${posto + 1} del Menù non ha un titolo.`);
+    }
+    const voci = sezione.voci;
+    if (!Array.isArray(voci) || voci.length === 0 || !voci.every(èTestoNonVuoto)) {
+      throw new Error(
+        `Configurazione non valida: la sezione "${sezione.titolo}" del Menù deve avere almeno una voce, e nessuna voce vuota.`,
+      );
+    }
+  });
+}
+
+/** Lancia un errore chiaro se la configurazione non è valida: Menù non a sezioni o Invitati con lo stesso nome normalizzato. */
 function verificaConfigurazione(config) {
+  verificaMenu(config.menu);
   const visti = new Map();
   for (const invitato of config.invitati) {
     const chiave = normalizzaNome(invitato.nome);

@@ -2,7 +2,7 @@
 // L'UNICO FILE DI DATI DELL'INVITO
 //
 // Tutto ciò che si cambia per davvero sta qui: data della cena, Invitati,
-// Messaggi personalizzati, Menù e date di sblocco.
+// Messaggi personalizzati, Menù (a sezioni) e date di sblocco.
 // Non serve toccare nient'altro.
 //
 // ATTENZIONE: i contenuti qui sotto sono SEGNAPOSTO (campo `segnaposto: true`).
@@ -41,8 +41,18 @@ export const config = {
 
   // SEGNAPOSTO: Menù. Si sblocca 1 settimana prima della cena.
   // Se cambi la cena, aggiorna anche `sblocco`.
+  //
+  // `contenuto` è una lista ORDINATA di sezioni: l'Invito le mostra nello stesso ordine.
+  // Ogni sezione ha un `titolo` (il sottotitolo, per esempio "Antipasti") e una lista di `voci`
+  // (un testo per voce, mostrato come elenco puntato). Ogni sezione deve avere un titolo e almeno
+  // una voce non vuota, altrimenti l'Invito non parte e mostra un errore chiaro.
+  // Prima dello sblocco nessun titolo e nessuna voce arriva alla pagina: c'è solo il teaser.
   menu: {
-    contenuto: 'SEGNAPOSTO: antipasto misterioso, primo segreto, secondo a sorpresa, dolce da definire.',
+    contenuto: [
+      { titolo: 'Antipasti', voci: ['SEGNAPOSTO: antipasto misterioso', 'SEGNAPOSTO: stuzzichino segreto'] },
+      { titolo: 'Secondo', voci: ['SEGNAPOSTO: secondo a sorpresa'] },
+      { titolo: 'Dolce', voci: ['SEGNAPOSTO: dolce da definire'] },
+    ],
     sblocco: '2026-12-05T20:00:00+01:00',
   },
 

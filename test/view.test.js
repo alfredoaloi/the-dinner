@@ -12,7 +12,14 @@ const config = {
     { nome: 'Mario Rossi', messaggio: 'Ciao Mario' },
     { nome: 'Àgata Müller', messaggio: 'Ciao Àgata' },
   ],
-  menu: { contenuto: 'Tagliatelle al ragù', sblocco: '2030-06-08T20:00:00+02:00' },
+  menu: {
+    contenuto: [
+      { titolo: 'Antipasti', voci: ['Bruschette', 'Olive'] },
+      { titolo: 'Primo', voci: ['Tagliatelle al ragù'] },
+      { titolo: 'Dolce', voci: ['Tiramisù'] },
+    ],
+    sblocco: '2030-06-08T20:00:00+02:00',
+  },
   messaggioRifiuto: 'Non risulti in lista.',
   messaggioFinale: 'Si mangia!',
 };
@@ -21,6 +28,11 @@ const APERTURA = Date.parse(config.apertura);
 const CENA = Date.parse(config.cena);
 const SBLOCCO_MENU = Date.parse(config.menu.sblocco);
 const DOPO_APERTURA = APERTURA + 60_000;
+const SEZIONI = [
+  { titolo: 'Antipasti', voci: ['Bruschette', 'Olive'] },
+  { titolo: 'Primo', voci: ['Tagliatelle al ragù'] },
+  { titolo: 'Dolce', voci: ['Tiramisù'] },
+];
 
 test("prima dell'apertura l'Invito è chiuso e dice quanto manca all'apertura", () => {
   const ora = APERTURA - (3 * 86400 + 4 * 3600 + 5 * 60 + 6) * 1000;
@@ -196,11 +208,16 @@ test('il countdown di una cena a cavallo del cambio ora legale passa da un\'ora 
   assert.deepEqual(dopo, { giorni: 0, ore: 17, minuti: 0, secondi: 0 });
 });
 
-test('prima dello sblocco il Menù mostra solo il tempo mancante allo sblocco, senza contenuto', () => {
+test('prima dello sblocco il Menù mostra solo il tempo mancante allo sblocco, senza voci né titoli', () => {
   const ora = SBLOCCO_MENU - (2 * 86400 + 3 * 3600 + 4 * 60 + 5) * 1000;
   const view = computeView(config, ora, 'Mario Rossi');
   assert.deepEqual(view.menu, { sbloccato: false, manca: { giorni: 2, ore: 3, minuti: 4, secondi: 5 } });
-  assert.ok(!JSON.stringify(view).includes('Tagliatelle'));
+  const esposto = JSON.stringify(view);
+  for (const { titolo, voci } of SEZIONI) {
+    for (const testo of [titolo, ...voci]) {
+      assert.ok(!esposto.includes(testo), `"${testo}" esposto con il Menù bloccato`);
+    }
+  }
 });
 
 test('un secondo prima dello sblocco il Menù è ancora bloccato, mai a zero', () => {
@@ -210,11 +227,22 @@ test('un secondo prima dello sblocco il Menù è ancora bloccato, mai a zero', (
   assert.deepEqual(quasi, { sbloccato: false, manca: { giorni: 0, ore: 0, minuti: 0, secondi: 1 } });
 });
 
-test("all'istante di sblocco e subito dopo il Menù mostra il contenuto", () => {
+test("all'istante di sblocco e subito dopo il Menù mostra tutte le sezioni, nell'ordine della configurazione", () => {
   for (const scarto of [0, 1, 1000]) {
     const { menu } = computeView(config, SBLOCCO_MENU + scarto, 'Mario Rossi');
-    assert.deepEqual(menu, { sbloccato: true, contenuto: 'Tagliatelle al ragù' }, `+${scarto}ms`);
+    assert.deepEqual(menu, { sbloccato: true, sezioni: SEZIONI }, `+${scarto}ms`);
   }
+});
+
+test("le sezioni del Menù seguono l'ordine della configurazione, non quello alfabetico", () => {
+  const ordine = [
+    { titolo: 'Dolce', voci: ['Torta'] },
+    { titolo: 'Aperitivo', voci: ['Patatine', 'Taralli'] },
+  ];
+  const invertito = { ...config, menu: { ...config.menu, contenuto: ordine } };
+  const { menu } = computeView(invertito, SBLOCCO_MENU, 'Mario Rossi');
+  assert.deepEqual(menu.sezioni.map((s) => s.titolo), ['Dolce', 'Aperitivo']);
+  assert.deepEqual(menu.sezioni[1].voci, ['Patatine', 'Taralli']);
 });
 
 test('il Menù resta sbloccato fino alla cena e dopo', () => {
@@ -234,7 +262,7 @@ test('lo sblocco del Menù a cavallo del cambio ora legale usa il fuso Europe/Ro
   const cambio = {
     ...config,
     apertura: '2030-03-01T20:00:00+01:00',
-    menu: { contenuto: 'x', sblocco: '2030-03-31T03:00:00+02:00' },
+    menu: { contenuto: [{ titolo: 'x', voci: ['y'] }], sblocco: '2030-03-31T03:00:00+02:00' },
   };
   // 01:59:59 (+01:00) è un secondo reale prima delle 03:00 (+02:00): il salto d'ora non conta.
   const prima = computeView(cambio, Date.parse('2030-03-31T01:59:59+01:00'), 'Mario Rossi').menu;
@@ -242,11 +270,34 @@ test('lo sblocco del Menù a cavallo del cambio ora legale usa il fuso Europe/Ro
   assert.equal(computeView(cambio, Date.parse('2030-03-31T03:00:00+02:00'), 'Mario Rossi').menu.sbloccato, true);
 });
 
-test('il Menù della configurazione reale ha contenuto e si sblocca una settimana prima della cena', () => {
+test('il Menù della configurazione reale si sblocca una settimana prima della cena', () => {
   assert.equal(Date.parse(configReale.cena) - Date.parse(configReale.menu.sblocco), 7 * 86400_000);
-  assert.ok(configReale.menu.contenuto.length > 0);
+});
+
+test('il Menù della configurazione reale, sbloccato, espone almeno una sezione', () => {
+  const { menu } = computeView(configReale, Date.parse(configReale.menu.sblocco), configReale.invitati[0].nome);
+  assert.ok(menu.sezioni.length > 0);
 });
 
 test('la vista di un Invitato dentro non ha più il campo curiosita', () => {
   assert.equal('curiosita' in computeView(config, DOPO_APERTURA, 'Mario Rossi'), false);
+});
+
+test('una sezione del Menù senza titolo, senza voci o con voci vuote fa fallire la configurazione con un errore chiaro', () => {
+  const sezioniNonValide = {
+    'titolo mancante': [{ voci: ['Olive'] }],
+    'titolo vuoto': [{ titolo: '   ', voci: ['Olive'] }],
+    'voci mancanti': [{ titolo: 'Antipasti' }],
+    'nessuna voce': [{ titolo: 'Antipasti', voci: [] }],
+    'solo voci vuote': [{ titolo: 'Antipasti', voci: ['', '  '] }],
+    'una voce vuota tra le altre': [{ titolo: 'Antipasti', voci: ['Olive', ' '] }],
+    'contenuto senza sezioni': [],
+    'contenuto stringa': 'Tagliatelle',
+  };
+  for (const [caso, contenuto] of Object.entries(sezioniNonValide)) {
+    const nonValida = { ...config, menu: { ...config.menu, contenuto } };
+    for (const ora of [DOPO_APERTURA, SBLOCCO_MENU]) {
+      assert.throws(() => computeView(nonValida, ora, 'Mario Rossi'), /Menù/, caso);
+    }
+  }
 });

@@ -26,7 +26,6 @@ test("l'Invito si apre due settimane prima della cena", () => {
 test('il Menù si sblocca una settimana prima della cena', () => {
   assert.match(config.menu.sblocco, ISO_CON_OFFSET_ROMA);
   assert.equal(istante(config.cena) - istante(config.menu.sblocco), UNA_SETTIMANA_MS);
-  assert.ok(config.menu.contenuto.trim().length > 0);
 });
 
 /** Offset reale di Europe/Rome (es. "+01:00") nell'istante dato, calcolato da Intl. */
@@ -78,7 +77,7 @@ test('il messaggio di rifiuto è fisso e il messaggio finale è "Si mangia!"', (
 test('i testi hanno il marcatore SEGNAPOSTO se e solo se config.segnaposto è true', () => {
   const testi = [
     ...config.invitati.map((i) => i.messaggio),
-    config.menu.contenuto,
+    ...config.menu.contenuto.flatMap((sezione) => sezione.voci),
   ];
   for (const testo of testi) {
     assert.equal(

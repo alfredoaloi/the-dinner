@@ -93,9 +93,18 @@ function countdown(etichetta, leggi) {
   return elemento;
 }
 
+/** Una sezione del Menù sbloccato: sottotitolo con la lista puntata delle sue voci. */
+function sezioneDelMenu({ titolo, voci }) {
+  const gruppo = crea('div', undefined, 'menu-sezione');
+  const elenco = crea('ul');
+  elenco.append(...voci.map((voce) => crea('li', voce)));
+  gruppo.append(crea('h3', titolo), elenco);
+  return gruppo;
+}
+
 /**
  * La sezione Menù: finché è bloccata mostra solo il teaser con il countdown allo
- * sblocco; dall'istante di sblocco mostra il contenuto. Si aggiorna sul posto
+ * sblocco; dall'istante di sblocco mostra tutte le sezioni (sottotitolo e lista puntata). Si aggiorna sul posto
  * (`aggiornaMenu`), quindi passa da teaser a contenuto senza ridisegnare la pagina.
  */
 function sezioneMenu() {
@@ -109,7 +118,7 @@ function sezioneMenu() {
       const titolo = crea('h2', 'Menù');
       if (menu.sbloccato) {
         aggiornaTempo = () => {};
-        sezione.replaceChildren(titolo, crea('p', menu.contenuto));
+        sezione.replaceChildren(titolo, ...menu.sezioni.map(sezioneDelMenu));
       } else {
         const { elemento, aggiorna } = creaTempoMancante('Tempo che manca allo sblocco del Menù');
         aggiornaTempo = aggiorna;

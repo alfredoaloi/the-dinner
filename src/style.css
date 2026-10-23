@@ -418,6 +418,28 @@ p {
   margin: 0;
 }
 
+.menu-sezione + .menu-sezione {
+  margin-top: 1rem;
+}
+
+.menu h3 {
+  margin: 0 0 0.3rem;
+  font-family: var(--titoli);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--viola);
+}
+
+.menu ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  text-align: left;
+}
+
+.menu li + li {
+  margin-top: 0.15rem;
+}
+
 .menu .countdown {
   margin-top: 0.6rem;
 }
