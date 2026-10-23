@@ -2,7 +2,8 @@
 // Nessun accesso a DOM, orologio o storage: tutto arriva dai parametri.
 //
 // computeView(config, now, nomeScritto) -> vista
-//   config      la configurazione dell'Invito (src/config.js)
+//   config      la configurazione dell'Invito (src/config.js). Apertura e Sblocco del Menù
+//               sono `giorniPrima` la cena, risolti qui alla stessa ora locale di Roma della cena
 //   now         l'istante corrente: millisecondi epoch o Date
 //   nomeScritto il nome scritto all'Ingresso (assente se non scritto)
 //
@@ -30,6 +31,37 @@ function tempoMancante(ms) {
   };
 }
 
+const FORMATO_ROMA = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'Europe/Rome',
+  hourCycle: 'h23',
+  year: 'numeric',
+  month: 'numeric',
+  day: 'numeric',
+  hour: 'numeric',
+  minute: 'numeric',
+  second: 'numeric',
+});
+
+/** Ora a muro di Europe/Rome in quell'istante, scritta come se fosse UTC (millisecondi epoch). */
+function muroRoma(istante) {
+  const v = Object.fromEntries(FORMATO_ROMA.formatToParts(new Date(istante)).map((p) => [p.type, Number(p.value)]));
+  return Date.UTC(v.year, v.month - 1, v.day, v.hour, v.minute, v.second) + (((istante % 1000) + 1000) % 1000);
+}
+
+/** Istante che a Roma ha quell'ora a muro (scritta come se fosse UTC). */
+function istanteDaMuroRoma(muro) {
+  const primo = muro - (muroRoma(muro) - muro);
+  return muro - (muroRoma(primo) - primo);
+}
+
+/**
+ * L'istante `giorni` giorni di calendario prima di `istante`, alla stessa ora locale di Roma.
+ * Non sono `giorni * 24` ore: attraversando un cambio di ora legale l'ora a muro resta quella.
+ */
+function giorniPrima(istante, giorni) {
+  return istanteDaMuroRoma(muroRoma(istante) - giorni * 86400_000);
+}
+
 /**
  * Forma normalizzata di un nome: senza spazi ai bordi, con gli spazi interni
  * ridotti a uno, senza maiuscole e senza accenti. Assente -> stringa vuota.
@@ -54,7 +86,7 @@ function statoCena(config, adesso) {
 
 /** Stato del Menù: solo il tempo mancante allo sblocco, poi (dall'istante di sblocco in poi) il contenuto. */
 function statoMenu(config, adesso) {
-  const sblocco = Date.parse(config.menu.sblocco);
+  const sblocco = giorniPrima(Date.parse(config.cena), config.menu.sblocco.giorniPrima);
   if (adesso >= sblocco) {
     return { sbloccato: true, contenuto: config.menu.contenuto };
   }
@@ -79,7 +111,7 @@ function verificaConfigurazione(config) {
 export function computeView(config, now, nomeScritto) {
   verificaConfigurazione(config);
   const adesso = Number(now);
-  const apertura = Date.parse(config.apertura);
+  const apertura = giorniPrima(Date.parse(config.cena), config.apertura.giorniPrima);
 
   if (adesso < apertura) {
     return { kind: 'chiuso', mancaAllApertura: tempoMancante(apertura - adesso) };

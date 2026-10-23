@@ -20,23 +20,22 @@ Il workflow (`.github/workflows/deploy.yml`) prima esegue i test; solo se passan
 Tutti i contenuti stanno in **un solo file**: [`src/config.js`](src/config.js). Non serve toccare altro.
 
 - `cena`: data e ora della cena, in un solo campo, con l'offset del fuso Europe/Rome (`+01:00` ora solare, `+02:00` ora legale).
-- `apertura`: da quando l'Invito è aperto. Deve essere 2 settimane prima della cena.
+- `apertura`: da quando l'Invito è aperto, scritta come `{ giorniPrima: 7 }`: 7 giorni prima della cena, alla stessa ora della cena (ora di Roma, anche attraversando un cambio di ora legale). Spostando la cena si sposta da sola.
 - `invitati`: per ogni **Invitato** un `nome` e un **Messaggio personalizzato**.
-- `menu`: `contenuto` e `sblocco` (1 settimana prima della cena).
+- `menu`: `contenuto` e `sblocco`, scritto come `{ giorniPrima: 3 }`: 3 giorni prima della cena, alla stessa ora della cena, come l'Apertura.
 - `messaggioRifiuto` e `messaggioFinale` ("Si mangia!").
 
-I contenuti d'esempio sono **segnaposto** e sono marcati come tali: nel file iniziano con `SEGNAPOSTO:` e, finché `segnaposto: true`, l'Invito mostra in fondo a ogni schermata una nota discreta che lo dice. Sostituiscili e poi metti `segnaposto: false`. I test controllano che le date siano coerenti (apertura, Menù), che ogni offset `+01:00`/`+02:00` sia quello giusto per quel giorno e che i marcatori `SEGNAPOSTO:` spariscano quando metti `segnaposto: false`.
+I contenuti d'esempio sono **segnaposto** e sono marcati come tali: nel file iniziano con `SEGNAPOSTO:` e, finché `segnaposto: true`, l'Invito mostra in fondo a ogni schermata una nota discreta che lo dice. Sostituiscili e poi metti `segnaposto: false`. I test controllano che `apertura` e `sblocco` siano i giorni-prima previsti, che l'offset `+01:00`/`+02:00` della cena sia quello giusto per quel giorno e che i marcatori `SEGNAPOSTO:` spariscano quando metti `segnaposto: false`.
 
 ## Da sostituire prima di condividere il link
 
 Tutto in [`src/config.js`](src/config.js). Spunta ogni voce:
 
 - [ ] **Data della cena** (`cena`): data e ora vere, con offset `+01:00` (ora solare) o `+02:00` (ora legale).
-- [ ] **Data di apertura** (`apertura`): esattamente 2 settimane prima della cena.
+- [ ] **Apertura** (`apertura`): `giorniPrima: 7`, già a posto: segue la cena.
 - [ ] **Invitati** (`invitati`): i nomi veri, uno principale per persona, senza alias. Due nomi uguali una volta normalizzati bloccano l'Invito.
 - [ ] **Messaggi personalizzati**: un `messaggio` vero per ogni Invitato.
-- [ ] **Menù** (`menu`): il `contenuto` vero e lo `sblocco`, esattamente 1 settimana prima della cena.
-- [ ] **Date di sblocco**: ricontrollale tutte dopo aver cambiato la cena (i test falliscono se non tornano).
+- [ ] **Menù** (`menu`): il `contenuto` vero e lo `sblocco` (`giorniPrima: 3`, già a posto: segue la cena).
 - [ ] **Segnaposto**: togli i `SEGNAPOSTO:` dai testi e metti `segnaposto: false` (così sparisce la nota in fondo alla pagina).
 - [ ] Prova ogni fase con `?now=` (vedi sotto), poi `npm test`.
 
@@ -78,7 +77,7 @@ Contrasti calcolati (WCAG 2.x), soglie 4.5:1 per il testo normale e 3:1 per test
 
 ## Provare le date: `?now=`
 
-Aggiungi `?now=<data ISO>` al link per simulare la data corrente, per esempio `?now=2026-11-28T20:00:00+01:00` per vedere l'apertura. Da quell'istante il tempo scorre a velocità reale. Sono accettate solo date o data-ora ISO 8601 (per esempio `2026-11-28` o `2026-11-28T20:00:00+01:00`); qualunque altro valore (`?now=1`, `?now=2026`, testo libero) viene ignorato e si usa l'ora reale.
+Aggiungi `?now=<data ISO>` al link per simulare la data corrente, per esempio `?now=2026-12-05T20:00:00+01:00` per vedere l'apertura (con i dati di prova). Da quell'istante il tempo scorre a velocità reale. Sono accettate solo date o data-ora ISO 8601 (per esempio `2026-11-28` o `2026-11-28T20:00:00+01:00`); qualunque altro valore (`?now=1`, `?now=2026`, testo libero) viene ignorato e si usa l'ora reale.
 
 ## Sviluppo
 

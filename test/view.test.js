@@ -7,19 +7,20 @@ import { config as configReale } from '../src/config.js';
 // Configurazione di prova, indipendente dai contenuti segnaposto reali.
 const config = {
   cena: '2030-06-15T20:00:00+02:00',
-  apertura: '2030-06-01T20:00:00+02:00',
+  apertura: { giorniPrima: 7 },
   invitati: [
     { nome: 'Mario Rossi', messaggio: 'Ciao Mario' },
     { nome: 'Àgata Müller', messaggio: 'Ciao Àgata' },
   ],
-  menu: { contenuto: 'Tagliatelle al ragù', sblocco: '2030-06-08T20:00:00+02:00' },
+  menu: { contenuto: 'Tagliatelle al ragù', sblocco: { giorniPrima: 3 } },
   messaggioRifiuto: 'Non risulti in lista.',
   messaggioFinale: 'Si mangia!',
 };
 
-const APERTURA = Date.parse(config.apertura);
+// Istanti attesi scritti a mano: 7 e 3 giorni prima della cena, alla stessa ora locale (20:00).
+const APERTURA = Date.parse('2030-06-08T20:00:00+02:00');
 const CENA = Date.parse(config.cena);
-const SBLOCCO_MENU = Date.parse(config.menu.sblocco);
+const SBLOCCO_MENU = Date.parse('2030-06-12T20:00:00+02:00');
 const DOPO_APERTURA = APERTURA + 60_000;
 
 test("prima dell'apertura l'Invito è chiuso e dice quanto manca all'apertura", () => {
@@ -87,7 +88,6 @@ test('il countdown alla cena a cavallo del cambio ora legale usa gli offset dell
   const cambio = {
     ...config,
     cena: '2030-03-31T20:00:00+02:00',
-    apertura: '2030-03-01T20:00:00+01:00',
   };
   // Il 31 marzo 2030 alle 01:00 locale (+01:00) mancano 18 ore reali, non 19, alle 20:00 (+02:00).
   const ora = Date.parse('2030-03-31T01:00:00+01:00');
@@ -96,7 +96,7 @@ test('il countdown alla cena a cavallo del cambio ora legale usa gli offset dell
 });
 
 test("la configurazione dell'Invito che andrà online è valida e fa entrare ogni suo Invitato", () => {
-  const dopoApertura = Date.parse(configReale.apertura) + 1000;
+  const dopoApertura = Date.parse(configReale.cena) - 7 * 86400_000 + 1000;
   for (const invitato of configReale.invitati) {
     const view = computeView(configReale, dopoApertura, invitato.nome);
     assert.equal(view.kind, 'dentro', invitato.nome);
@@ -173,7 +173,6 @@ test('il countdown a cavallo del passaggio all\'ora solare (ottobre) conta il te
   const cambio = {
     ...config,
     cena: '2030-10-27T20:00:00+01:00',
-    apertura: '2030-10-01T20:00:00+02:00',
   };
   // Il 27 ottobre 2030 alle 01:00 locale (+02:00) mancano 20 ore reali, non 19, alle 20:00 (+01:00).
   const ora = Date.parse('2030-10-27T01:00:00+02:00');
@@ -187,7 +186,6 @@ test('il countdown di una cena a cavallo del cambio ora legale passa da un\'ora 
   const cambio = {
     ...config,
     cena: '2030-03-31T20:00:00+02:00',
-    apertura: '2030-03-01T20:00:00+01:00',
   };
   // Un secondo prima e un secondo dopo il salto delle 02:00 locali (01:00 UTC): il tempo reale scorre di un solo secondo.
   const prima = computeView(cambio, Date.parse('2030-03-31T01:59:59+01:00'), 'Mario Rossi').cena.manca;
@@ -230,21 +228,53 @@ test("il Menù compare solo dentro l'Invito", () => {
   }
 });
 
-test('lo sblocco del Menù a cavallo del cambio ora legale usa il fuso Europe/Rome', () => {
-  const cambio = {
-    ...config,
-    apertura: '2030-03-01T20:00:00+01:00',
-    menu: { contenuto: 'x', sblocco: '2030-03-31T03:00:00+02:00' },
-  };
-  // 01:59:59 (+01:00) è un secondo reale prima delle 03:00 (+02:00): il salto d'ora non conta.
-  const prima = computeView(cambio, Date.parse('2030-03-31T01:59:59+01:00'), 'Mario Rossi').menu;
-  assert.deepEqual(prima, { sbloccato: false, manca: { giorni: 0, ore: 0, minuti: 0, secondi: 1 } });
-  assert.equal(computeView(cambio, Date.parse('2030-03-31T03:00:00+02:00'), 'Mario Rossi').menu.sbloccato, true);
+test('con i dati di prova l\'Apertura è 7 giorni prima della cena e lo Sblocco 3 giorni prima', () => {
+  const cena = Date.parse(configReale.cena);
+  // Date di prova: la cena è alle 20:00 +01:00, nessun cambio d'ora in mezzo.
+  assert.equal(configReale.apertura.giorniPrima, 7);
+  assert.equal(configReale.menu.sblocco.giorniPrima, 3);
+  assert.equal(computeView(configReale, cena - 7 * 86400_000 - 1000, undefined).kind, 'chiuso');
+  assert.equal(computeView(configReale, cena - 7 * 86400_000, undefined).kind, 'ingresso');
+  const nome = configReale.invitati[0].nome;
+  assert.equal(computeView(configReale, cena - 3 * 86400_000 - 1000, nome).menu.sbloccato, false);
+  assert.equal(computeView(configReale, cena - 3 * 86400_000, nome).menu.sbloccato, true);
+  assert.ok(configReale.menu.contenuto.length > 0);
 });
 
-test('il Menù della configurazione reale ha contenuto e si sblocca una settimana prima della cena', () => {
-  assert.equal(Date.parse(configReale.cena) - Date.parse(configReale.menu.sblocco), 7 * 86400_000);
-  assert.ok(configReale.menu.contenuto.length > 0);
+test("Apertura e Sblocco si spostano insieme alla cena", () => {
+  const spostata = { ...config, cena: '2030-07-20T20:00:00+02:00' };
+  const apertura = Date.parse('2030-07-13T20:00:00+02:00');
+  const sblocco = Date.parse('2030-07-17T20:00:00+02:00');
+  assert.equal(computeView(spostata, apertura - 1000, undefined).kind, 'chiuso');
+  assert.equal(computeView(spostata, apertura, undefined).kind, 'ingresso');
+  assert.equal(computeView(spostata, sblocco - 1000, 'Mario Rossi').menu.sbloccato, false);
+  assert.equal(computeView(spostata, sblocco, 'Mario Rossi').menu.sbloccato, true);
+});
+
+test("l'Apertura cade alla stessa ora locale della cena anche a cavallo del passaggio all'ora legale", () => {
+  const cambio = { ...config, cena: '2030-03-31T20:00:00+02:00' };
+  // 7 giorni prima: 24 marzo alle 20:00 locali (+01:00), non alle 21:00 come darebbero 168 ore reali.
+  assert.equal(computeView(cambio, Date.parse('2030-03-24T19:59:59+01:00'), undefined).kind, 'chiuso');
+  assert.equal(computeView(cambio, Date.parse('2030-03-24T20:00:00+01:00'), undefined).kind, 'ingresso');
+});
+
+test("l'Apertura cade alla stessa ora locale della cena anche a cavallo del passaggio all'ora solare", () => {
+  const cambio = { ...config, cena: '2030-10-27T20:00:00+01:00' };
+  // 7 giorni prima: 20 ottobre alle 20:00 locali (+02:00), non alle 19:00 come darebbero 168 ore reali.
+  assert.equal(computeView(cambio, Date.parse('2030-10-20T19:59:59+02:00'), undefined).kind, 'chiuso');
+  assert.equal(computeView(cambio, Date.parse('2030-10-20T20:00:00+02:00'), undefined).kind, 'ingresso');
+});
+
+test('lo Sblocco del Menù cade alla stessa ora locale della cena a cavallo del cambio ora legale', () => {
+  for (const [cena, sblocco] of [
+    ['2030-03-31T20:00:00+02:00', '2030-03-28T20:00:00+01:00'],
+    ['2030-10-27T20:00:00+01:00', '2030-10-24T20:00:00+02:00'],
+  ]) {
+    const cambio = { ...config, cena };
+    const istante = Date.parse(sblocco);
+    assert.equal(computeView(cambio, istante - 1000, 'Mario Rossi').menu.sbloccato, false, sblocco);
+    assert.equal(computeView(cambio, istante, 'Mario Rossi').menu.sbloccato, true, sblocco);
+  }
 });
 
 test('la vista di un Invitato dentro non ha più il campo curiosita', () => {
